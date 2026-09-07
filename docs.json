@@ -110,7 +110,18 @@
   },
   "seo": {
     "metatags": {
-      "canonical": "https://fastflowpe.com/docs"
+      "canonical": "https://fastflowpe.com/docs",
+      "og:title": "FastFlowPe is a payment orchestration platform. This documentation covers integration of our unified API for payments and payouts, SDKs, and workflows",
+      "og:description": "\"FastFlowPe developer docs for payment orchestration, UPI, and payouts. Find API references, SDKs (Python, Node, Java, etc.), and guides to integrate our multi-gateway payment platform",
+      "og:image": "https://fastflowpe.com/images/og-docs-banner.png",
+      "keywords": "FastFlowPe API,Payment orchestration, PayIn integration, Payout API, IMPS settlement, payment gateway India, Smart Routing, ",
+      "applicationCategory": "FinancialService",
+      "twitter:card": "summary_large_image",
+      "twitter:title": "FastFlowPe Quickstart – Developer Onboarding Guide",
+      "twitter:description": "\"FastFlowPe integration quickstart: create an account, get API keys, and make your first payment using our multigateway API.",
+      "twitter:image": "\"https://docs.fastflowpe.com/assets/og/ getting-started.png",
+      "robots": "index,follow"
     }
-  }
+  },
+  "description": "FastFlowPe is an Indian merchant payment platform providing REST APIs for PayIn online payments, instant PayOut fund transfers via IMPS/NEFT/RTGS, and automated refunds."
 }
