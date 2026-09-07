@@ -1,0 +1,14 @@
+# Source: https://gofastflowpe.gitbook.io/documentation/fund-transfer/create-beneficiary-api.md
+
+\> For the complete documentation index, see \[llms.txt\](https://gofastflowpe.gitbook.io/documentation/llms.txt). Markdown versions of documentation pages are available by appending \`.md\` to page URLs; this page is available as \[Markdown\](https://gofastflowpe.gitbook.io/documentation/fund-transfer/create-beneficiary-api.md). # Create Beneficiary API This API allows you to create contacts for your beneficiaries which can then be used to consume PayOut. \*\*Method\*\* : \*\*POST\*\* \*\*Payload\*\* : \*\*JSON\*\* \*\*Endpoint :\*\* \[\*\*https://api.fastflowpe.com/merchant/api/v1/verification/create-beneficiary\*\*\](https://api.fastflowpe.com/merchant/api/v1/verification/create-beneficiary) \*\*Headers :\*\* \`x-api-key : \` \*\*Request Body Parameters:\*\*
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `name` | `string` | ✅ | Name of benficiary |
+| `email` | `float` | ✅ | Email |
+| `bank_details` | `JSON` | ✅ | Details of beneficiary |
+| `phone` | string | ✅ | Phone number |
+| `pan_number` | string | ❌ | PAN Number |
+| `verification_type` | string | ✅ | PENNY\_DROP |
+
+\*\*Payload:\*\* {% code overflow="wrap" %} \`\`\`json { "name": "name", "email": "name@gmail.com", "bank\_details": { "bank\_account\_number":"xxxxxxxxxxxxxx", "ifsc":"IDFBxxxxxxx", "account\_type":"SAVINGS" // or CURRENT }, "phone":"xxxxxxxxxx", "pan\_number": "", "verification\_type":"PENNY\_DROP" // or PENNY\_LESS } \`\`\` {% endcode %} \*\*Sample cURL:\*\* {% code overflow="wrap" %} \`\`\`json curl --location 'https://api.fastflowpe.com/merchant/api/v1/verification/create-beneficiary' \\ --header 'x-api-key: ' \\ --header 'Content-Type: application/json' \\ --data-raw '{ "name": "name", "email": "name@gmail.com", "bank\_details": { "bank\_account\_number":"xxxxxxxxxxxxxx", "ifsc":"IDFBxxxxxxx", "account\_type":"SAVINGS" // or CURRENT }, "phone":"xxxxxxxxxx", "pan\_number": "", "verification\_type":"PENNY\_DROP" // or PENNY\_LESS }' \`\`\` {% endcode %} \*\*Response : \*\*\*\*JSON\*\* \`\`\`json { "status": "success", "status\_code": 200, "message": "Beneficiary processed successfully", "detail": null, "data": { "is\_new\_beneficiary": false, // boolean "contact\_id": "61f4d33d-274a-40e7-b239-c1c28de80e19", "verification": { "status": "FAILED", "verification\_type": "PENNY\_DROP", "verified\_at": "2026-02-11T15:22:16.986350+05:30", "failure\_reason": null, "account\_number": "xxxxxxxxxx", "ifsc": "xxxxxxxxxxxx", "expiry\_date": "2026-08-10T15:22:27.614446+05:30" } }, \`\`\`

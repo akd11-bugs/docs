@@ -1,0 +1,231 @@
+---
+title: "Check PayIn Transaction Status "
+sidebarTitle: "Transaction Status"
+description: "Call the POST /payin/status endpoint with a transaction ID to retrieve the current status and full details of a previously initiated PayIn transaction."
+tag: "POST"
+---
+
+After initiating a PayIn transaction, use this endpoint to retrieve its current status. Pass the `transaction_id` you received from the Initiate PayIn response, and FastFlowPe returns the payment outcome along with key details such as the UTR, payment type, and merchant reference ID.
+
+<Tip>
+  **Quick Reference**
+
+  **Method:** `POST`
+
+  **Required:** `transaction_id` (UUID from Initiate PayIn)
+
+  **Returns:** `payment_status`, `utr`, `payment_type`, `merchant_ref_id`, `amount`
+
+  **Tip:** Prefer webhooks over polling for production traffic.
+</Tip>
+
+## Endpoint
+
+```text
+POST https://api.fastflowpe.com/merchant/payin/status
+```
+
+## Headers
+
+| Header | Value |
+| --- | --- |
+| `x-api-key` | Your merchant API key |
+| `Content-Type` | `application/json` |
+
+## Request Body Parameters
+
+<ParamField body="transaction_id" type="string" required>
+  The UUID of the transaction to look up. This is the `transaction_id` returned by the [Initiate PayIn](/collections/transaction-api/initiate-payin) endpoint.
+</ParamField>
+
+<RequestExample>
+
+```bash cURL
+curl --location 'https://api.fastflowpe.com/merchant/payin/status' \
+--header 'x-api-key: <your-api-key>' \
+--header 'Content-Type: application/json' \
+--data '{"transaction_id": "e7a1c22d-52cb-419b-af0c-122c16c5b613"}'
+```
+
+```python Python
+import requests
+
+url = "https://api.fastflowpe.com/merchant/payin/status"
+headers = {
+    "x-api-key": "<your-api-key>",
+    "Content-Type": "application/json",
+}
+payload = {"transaction_id": "e7a1c22d-52cb-419b-af0c-122c16c5b613"}
+
+response = requests.post(url, json=payload, headers=headers)
+print(response.json())
+```
+
+```javascript Node.js
+const response = await fetch("https://api.fastflowpe.com/merchant/payin/status", {
+  method: "POST",
+  headers: {
+    "x-api-key": "<your-api-key>",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ transaction_id: "e7a1c22d-52cb-419b-af0c-122c16c5b613" }),
+});
+console.log(await response.json());
+```
+
+```java Java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.fastflowpe.com/merchant/payin/status"))
+    .header("x-api-key", "<your-api-key>")
+    .header("Content-Type", "application/json")
+    .POST(HttpRequest.BodyPublishers.ofString("{\"transaction_id\": \"e7a1c22d-52cb-419b-af0c-122c16c5b613\"}"))
+    .build();
+
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+System.out.println(response.body());
+```
+
+```go Go
+package main
+
+import (
+    "bytes"
+    "fmt"
+    "io"
+    "net/http"
+)
+
+func main() {
+    payload := []byte(`{"transaction_id": "e7a1c22d-52cb-419b-af0c-122c16c5b613"}`)
+    req, _ := http.NewRequest("POST", "https://api.fastflowpe.com/merchant/payin/status", bytes.NewBuffer(payload))
+    req.Header.Set("x-api-key", "<your-api-key>")
+    req.Header.Set("Content-Type", "application/json")
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println(string(body))
+}
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.fastflowpe.com/merchant/payin/status");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(["transaction_id" => "e7a1c22d-52cb-419b-af0c-122c16c5b613"]));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "x-api-key: <your-api-key>",
+    "Content-Type: application/json",
+]);
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+```ruby Ruby
+require 'net/http'
+require 'uri'
+require 'json'
+
+uri = URI('https://api.fastflowpe.com/merchant/payin/status')
+request = Net::HTTP::Post.new(uri)
+request['x-api-key'] = '<your-api-key>'
+request['Content-Type'] = 'application/json'
+request.body = { transaction_id: 'e7a1c22d-52cb-419b-af0c-122c16c5b613' }.to_json
+
+response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+puts response.body
+```
+
+</RequestExample>
+
+## Responses
+
+<ResponseExample>
+
+```json Success
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Transaction status retrieved successfully",
+  "detail": "Status check completed successfully",
+  "data": {
+    "transaction_id": "<Transaction UUID>",
+    "status": "SUCCESS",
+    "utr": "<Unique Transaction Reference>",
+    "payment_details": "<Payment details object>",
+    "amount": "<Transaction amount in float>",
+    "payment_type": "<Payment type>",
+    "merchant_ref_id": "<Merchant reference ID>"
+  },
+  "meta": null
+}
+```
+
+```json Failed Transaction
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Transaction status retrieved successfully",
+  "detail": "Status check completed successfully",
+  "data": {
+    "transaction_id": "<Transaction UUID>",
+    "status": "FAILED",
+    "utr": null,
+    "payment_details": "<Payment details object>",
+    "amount": "<Transaction amount in float>",
+    "payment_type": "<Payment type>",
+    "merchant_ref_id": "<Merchant reference ID>"
+  },
+  "meta": null
+}
+```
+
+```json Failure (4xx)
+{
+  "status": "error",
+  "status_code": "4xx",
+  "message": "<reason for failure>",
+  "detail": "<additional detail or null>",
+  "data": null,
+  "meta": null
+}
+```
+
+</ResponseExample>
+
+## Response Fields
+
+<ResponseField name="data.transaction_id" type="string">
+  The UUID of the transaction, matching the value you submitted in the request body.
+</ResponseField>
+
+<ResponseField name="data.status" type="string">
+  Outcome of the transaction. Possible values: `SUCCESS`, `FAILED`, `PENDING`.
+</ResponseField>
+
+<ResponseField name="data.utr" type="string">
+  Unique Transaction Reference assigned by the banking network upon successful payment. Returns `null` for failed or pending transactions.
+</ResponseField>
+
+<ResponseField name="data.amount" type="float">
+  The transaction amount in Indian Rupees.
+</ResponseField>
+
+<ResponseField name="data.payment_type" type="string">
+  The payment method used for the transaction (e.g. `QR`, `INTENT`, `DEBIT_CARD`).
+</ResponseField>
+
+<ResponseField name="data.merchant_ref_id" type="string">
+  Your original `order_id`, returned as a reference so you can reconcile the transaction against your system records.
+</ResponseField>
+
+<Note>
+  If you do not use webhooks, poll this endpoint after initiating a PayIn to confirm the final payment status. We recommend polling at a reasonable interval (e.g. every 5 seconds) until you receive a terminal state of `SUCCESS` or `FAILED`.
+</Note>

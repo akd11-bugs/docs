@@ -1,0 +1,166 @@
+---
+title: "Get Available PayIn PSP Providers"
+sidebarTitle: "PSP Providers"
+description: "Call the GET get-payin-providers endpoint to list all active PSP providers mapped to your merchant account before creating a payment link."
+tag: "GET"
+---
+
+Before creating a payment link for a specific payment provider, retrieve the list of active PSPs mapped to your merchant account. Each provider in the response includes a `psp_provider_id` that you can pass to the Create Payment Link endpoint to route the transaction through that provider.
+
+<Tip>
+  **Quick Reference**
+
+  **Method:** `GET`
+
+  **Required:** `x-api-key` header only (no body)
+
+  **Returns:** `providers[]` with `psp_provider_id` and `provider_name`
+
+  **Use case:** Call once at setup or when your provider list changes.
+</Tip>
+
+## Endpoint
+
+```text
+GET https://api.fastflowpe.com/merchant/payment-links/v3/get-payin-providers
+```
+
+## Headers
+
+| Header | Value |
+| --- | --- |
+| `Accept` | `application/json` |
+| `x-api-key` | Your merchant API key |
+
+<RequestExample>
+
+```bash cURL
+curl --location 'https://api.fastflowpe.com/merchant/payment-links/v3/get-payin-providers' \
+  --header 'Accept: application/json' \
+  --header 'x-api-key: <MERCHANT_TOKEN>'
+```
+
+```python Python
+import requests
+
+url = "https://api.fastflowpe.com/merchant/payment-links/v3/get-payin-providers"
+headers = {
+    "Accept": "application/json",
+    "x-api-key": "<MERCHANT_TOKEN>",
+}
+
+response = requests.get(url, headers=headers)
+print(response.json())
+```
+
+```javascript Node.js
+const response = await fetch("https://api.fastflowpe.com/merchant/payment-links/v3/get-payin-providers", {
+  headers: {
+    Accept: "application/json",
+    "x-api-key": "<MERCHANT_TOKEN>",
+  },
+});
+console.log(await response.json());
+```
+
+```java Java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.fastflowpe.com/merchant/payment-links/v3/get-payin-providers"))
+    .header("Accept", "application/json")
+    .header("x-api-key", "<MERCHANT_TOKEN>")
+    .GET()
+    .build();
+
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+System.out.println(response.body());
+```
+
+```go Go
+package main
+
+import (
+    "fmt"
+    "io"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://api.fastflowpe.com/merchant/payment-links/v3/get-payin-providers", nil)
+    req.Header.Set("Accept", "application/json")
+    req.Header.Set("x-api-key", "<MERCHANT_TOKEN>")
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println(string(body))
+}
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.fastflowpe.com/merchant/payment-links/v3/get-payin-providers");
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "Accept: application/json",
+    "x-api-key: <MERCHANT_TOKEN>",
+]);
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+```ruby Ruby
+require 'net/http'
+require 'uri'
+
+uri = URI('https://api.fastflowpe.com/merchant/payment-links/v3/get-payin-providers')
+request = Net::HTTP::Get.new(uri)
+request['Accept'] = 'application/json'
+request['x-api-key'] = '<MERCHANT_TOKEN>'
+response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+puts response.body
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200 OK
+{
+  "providers": [
+    {
+      "psp_provider_id": "71f2904d-8f4d-4662-b98a-3198926182ec",
+      "provider_name": "testuatpayin"
+    }
+  ]
+}
+```
+
+</ResponseExample>
+
+## Success Response
+
+## Response Fields
+
+<ResponseField name="providers" type="array">
+  List of all active PayIn PSP providers mapped to your merchant account.
+
+  <Expandable title="providers item fields">
+    <ResponseField name="providers[].psp_provider_id" type="string">
+      Unique UUID identifying the PSP provider. Pass this value as `psp_provider_id` when creating a payment link to route the transaction through this provider.
+    </ResponseField>
+
+    <ResponseField name="providers[].provider_name" type="string">
+      Human-readable display name of the PSP provider.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<Tip>
+  Copy the `psp_provider_id` from this response and supply it as the `psp_provider_id` body parameter when calling [Create Payment Link](/collections/payment-links/create). This lets you control which payment provider handles the transaction.
+</Tip>

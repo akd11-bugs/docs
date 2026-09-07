@@ -1,0 +1,193 @@
+---
+title: "Check Payment Link Status "
+sidebarTitle: "Payment Link Status"
+description: "Poll the GET check-payment-status endpoint with a payment link slug to find out whether a customer's payment is completed, pending, or failed."
+tag: "GET"
+---
+
+After you share a payment link with a customer, use this endpoint to poll the current status of their payment. Pass the `slug` (a short identifier returned when the customer visits the payment URL) as a query parameter, and FastFlowPe returns the latest payment state along with transaction details for completed payments.
+
+<Tip>
+  **Quick Reference**
+
+  **Method:** `GET`
+
+  **Required:** `slug` (query parameter)
+
+  **Returns:** `payment_status`, `transaction_id`, `amount`, `utr`
+
+  **Terminal states:** `COMPLETED`, `PENDING`, `FAILED`
+</Tip>
+
+## Endpoint
+
+```text
+GET https://api.fastflowpe.com/merchant/payment-links/v3/check-payment-status?slug=<slug>
+```
+
+## Headers
+
+| Header | Value |
+| --- | --- |
+| `x-api-key` | Your merchant API key |
+
+## Query Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `slug` | `string` | Yes | The short identifier assigned to the payment link. This value is available once the customer visits the payment URL. |
+
+<RequestExample>
+
+```bash cURL
+curl --location 'https://api.fastflowpe.com/merchant/payment-links/v3/check-payment-status?slug=NQ7diKbFmRDT' \
+--header 'x-api-key: <merchant_x_api_key>'
+```
+
+```python Python
+import requests
+
+url = "https://api.fastflowpe.com/merchant/payment-links/v3/check-payment-status"
+params = {"slug": "NQ7diKbFmRDT"}
+headers = {"x-api-key": "<merchant_x_api_key>"}
+
+response = requests.get(url, params=params, headers=headers)
+print(response.json())
+```
+
+```javascript Node.js
+const url = "https://api.fastflowpe.com/merchant/payment-links/v3/check-payment-status?slug=NQ7diKbFmRDT";
+const response = await fetch(url, {
+  headers: { "x-api-key": "<merchant_x_api_key>" },
+});
+console.log(await response.json());
+```
+
+```java Java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.fastflowpe.com/merchant/payment-links/v3/check-payment-status?slug=NQ7diKbFmRDT"))
+    .header("x-api-key", "<merchant_x_api_key>")
+    .GET()
+    .build();
+
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+System.out.println(response.body());
+```
+
+```go Go
+package main
+
+import (
+    "fmt"
+    "io"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://api.fastflowpe.com/merchant/payment-links/v3/check-payment-status?slug=NQ7diKbFmRDT", nil)
+    req.Header.Set("x-api-key", "<merchant_x_api_key>")
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println(string(body))
+}
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.fastflowpe.com/merchant/payment-links/v3/check-payment-status?slug=NQ7diKbFmRDT");
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["x-api-key: <merchant_x_api_key>"]);
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+```ruby Ruby
+require 'net/http'
+require 'uri'
+
+uri = URI('https://api.fastflowpe.com/merchant/payment-links/v3/check-payment-status?slug=NQ7diKbFmRDT')
+request = Net::HTTP::Get.new(uri)
+request['x-api-key'] = '<merchant_x_api_key>'
+response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+puts response.body
+```
+
+</RequestExample>
+
+## Responses
+
+The API returns HTTP `200` for all terminal states. Inspect the `payment_status` field inside `data` to determine the outcome.
+
+<ResponseExample>
+
+```json Completed
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Payment is completed",
+  "data": {
+    "payment_status": "COMPLETED",
+    "amount": 100.0,
+    "id": "a5563aae-d5d0-4ca9-8ff0-d7629d5d5b81",
+    "payment_mode": "QR",
+    "utr": "619704648408",
+    "status": "SUCCESS"
+  }
+}
+```
+
+```json Pending
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Payment is pending",
+  "data": {
+    "payment_status": "PENDING"
+  }
+}
+```
+
+```json Failed
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Payment has failed",
+  "detail": null,
+  "data": {
+    "payment_status": "FAILED"
+  },
+  "meta": null
+}
+```
+
+</ResponseExample>
+
+## Response Fields
+
+<ResponseField name="data.payment_status" type="string">
+  Current state of the payment. Possible values: `COMPLETED`, `PENDING`, `FAILED`.
+</ResponseField>
+
+<ResponseField name="data.amount" type="float">
+  Amount that was charged, in Indian Rupees. Present only when `payment_status` is `COMPLETED`.
+</ResponseField>
+
+<ResponseField name="data.payment_mode" type="string">
+  Payment method used by the customer (e.g. `QR`, `INTENT`, `NETBANKING`). Present only when `payment_status` is `COMPLETED`.
+</ResponseField>
+
+<ResponseField name="data.utr" type="string">
+  Unique Transaction Reference number assigned by the banking network. Present only when `payment_status` is `COMPLETED`.
+</ResponseField>
+
+<ResponseField name="data.status" type="string">
+  Secondary status flag confirming the transaction outcome. Returns `SUCCESS` for completed payments.
+</ResponseField>

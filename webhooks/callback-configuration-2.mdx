@@ -1,0 +1,110 @@
+---
+title: "Collections Callbacks"
+sidebarTitle: "Callbacks"
+description: "Receive instant POST notifications on your HTTPS endpoint whenever a PayIn transaction changes status on FastFlowPe."
+hidden: true
+---
+
+FastFlowPe sends real-time PayIn transaction status updates to a webhook endpoint of your choosing. Whenever a PayIn transaction reaches a terminal state, FastFlowPe automatically POSTs a JSON payload to your pre-configured HTTPS URL, so your system stays in sync without polling.
+
+<Tip>
+  **Quick Reference**
+
+  **Protocol:** HTTPS only (HTTP endpoints are rejected)
+
+  **Method:** `POST` with JSON body
+
+  **Event:** PayIn transaction status change
+
+  **Setup path:** Merchant Dashboard, Settings, Webhooks, Credit - PayIn, Update
+
+  **Activation:** 2 to 3 minutes after saving
+</Tip>
+
+## How to Configure Your PayIn Callback URL
+
+Register your PayIn webhook URL in the merchant dashboard before FastFlowPe can deliver PayIn callbacks to your server.
+
+<Steps>
+  <Step title="Log in to the merchant dashboard">
+    Navigate to [https://go.fastflowpe.com/](https://go.fastflowpe.com/) and sign in with your merchant credentials.
+  </Step>
+  <Step title="Open Webhook Settings">
+    From the left sidebar, click **Settings**, then select the **Webhooks** tab.
+  </Step>
+  <Step title="Enter your PayIn callback URL">
+    Under **Credit - PayIn**, enter your HTTPS endpoint URL where you want FastFlowPe to deliver PayIn transaction callbacks.
+  </Step>
+  <Step title="Save the configuration">
+    Click **Update** under **Credit - PayIn** to save your URL. Full path: **Login → Settings → Webhooks → Credit - PayIn → Update**.
+  </Step>
+</Steps>
+
+<Note>
+  Only HTTPS-enabled webhook URLs are accepted. HTTP endpoints will be rejected and will not receive any callbacks.
+</Note>
+
+<Tip>
+  Allow 2 to 3 minutes after saving your callback URL for the configuration to take effect. The next PayIn event after that window will be delivered to your endpoint.
+</Tip>
+
+## PayIn Callback Payload
+
+FastFlowPe uses a `POST` request with a JSON body for all PayIn callbacks.
+
+```json PayIn Callback
+{
+  "transaction": {
+    "id": "<transaction UUID>",
+    "order_id": "<your order ID>",
+    "amount": "500.00",
+    "payment_type": "QR",
+    "utr": "619704648408",
+    "status": "SUCCESS",
+    "transaction_details": "<customer info object>",
+    "resp_message": "<parsed response>"
+  }
+}
+```
+
+## PayIn Payload Fields
+
+<ResponseField name="id" type="string">
+  The unique UUID of the PayIn transaction.
+</ResponseField>
+
+<ResponseField name="order_id" type="string">
+  The order ID you submitted when creating the PayIn transaction.
+</ResponseField>
+
+<ResponseField name="amount" type="string">
+  The transaction amount as a decimal string.
+</ResponseField>
+
+<ResponseField name="payment_type" type="string">
+  The payment mode used (e.g., `QR`, `UPI`).
+</ResponseField>
+
+<ResponseField name="utr" type="string">
+  The Unique Transaction Reference issued by the bank. `null` on failure.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  The final transaction status. Either `SUCCESS` or `FAILED`.
+</ResponseField>
+
+<ResponseField name="transaction_details" type="object">
+  An object containing customer information associated with the transaction.
+</ResponseField>
+
+<ResponseField name="resp_message" type="string">
+  The parsed response message from the payment service provider.
+</ResponseField>
+
+<Tip>
+  In production, rely on callbacks rather than polling the [PayIn Status](/collections/transaction-api/check-transaction) endpoint. Webhooks reduce latency, cut down on unnecessary API calls, and ensure your system reacts to transaction outcomes in real time.
+</Tip>
+
+<Note>
+  Configuring PayOut callbacks? See [PayOut Callbacks](/webhooks/payout-callbacks).
+</Note>

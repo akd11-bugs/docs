@@ -1,0 +1,130 @@
+---
+title: "PayOut Callbacks"
+sidebarTitle: "Fund Transfer Callbacks"
+description: "Receive instant POST notifications on your HTTPS endpoint whenever a PayOut transaction changes status on FastFlowPe."
+---
+
+FastFlowPe sends real-time PayOut transaction status updates to a webhook endpoint of your choosing. Whenever a PayOut disbursement reaches a terminal state, FastFlowPe automatically POSTs a JSON payload to your pre-configured HTTPS URL, so your system stays in sync without polling.
+
+<Tip>
+  **Quick Reference**
+
+  **Protocol:** HTTPS only (HTTP endpoints are rejected)
+
+  **Method:** `POST` with JSON body
+
+  **Event:** PayOut transaction status change
+
+  **Setup path:** Merchant Dashboard, Settings, Webhooks, Debit - PayOut, Update
+
+  **Activation:** 2 to 3 minutes after saving
+</Tip>
+
+## How to Configure Your PayOut Callback URL
+
+Register your PayOut webhook URL in the merchant dashboard before FastFlowPe can deliver PayOut callbacks to your server.
+
+<Steps>
+  <Step title="Log in to the merchant dashboard">
+    Navigate to [https://go.fastflowpe.com/](https://go.fastflowpe.com/) and sign in with your merchant credentials.
+  </Step>
+  <Step title="Open Webhook Settings">
+    From the left sidebar, click **Settings**, then select the **Webhooks** tab.
+  </Step>
+  <Step title="Enter your PayOut callback URL">
+    Under **Debit - PayOut**, enter your HTTPS endpoint URL where you want FastFlowPe to deliver PayOut transaction callbacks.
+  </Step>
+  <Step title="Save the configuration">
+    Click **Update** under **Debit - PayOut** to save your URL. Full path: **Login → Settings → Webhooks → Debit - PayOut → Update**.
+  </Step>
+</Steps>
+
+<Note>
+  Only HTTPS-enabled webhook URLs are accepted. HTTP endpoints will be rejected and will not receive any callbacks.
+</Note>
+
+<Tip>
+  Allow 2 to 3 minutes after saving your callback URL for the configuration to take effect. The next PayOut event after that window will be delivered to your endpoint.
+</Tip>
+
+## PayOut Callback Payload
+
+FastFlowPe uses a `POST` request with a JSON body for all PayOut callbacks.
+
+```json PayOut Callback
+{
+  "transaction": {
+    "id": "<transaction UUID>",
+    "amount": "500.00",
+    "payment_type": "IMPS",
+    "utr": "92834823745",
+    "status": "SUCCESS",
+    "beneficiary_details": {
+      "beneficiary_ifsc": "ICIC0009999",
+      "beneficiary_name": "John Doe",
+      "beneficiary_email": "john@example.com",
+      "beneficiary_mobile": "9999999999",
+      "beneficiary_acc_number": "109909023553"
+    },
+    "merchant_ref_id": "TRX_2020202"
+  }
+}
+```
+
+## PayOut Payload Fields
+
+<ResponseField name="id" type="string">
+  The unique UUID of the PayOut transaction.
+</ResponseField>
+
+<ResponseField name="amount" type="string">
+  The disbursement amount as a decimal string.
+</ResponseField>
+
+<ResponseField name="payment_type" type="string">
+  The transfer mode used (e.g., `IMPS`, `NEFT`, `RTGS`).
+</ResponseField>
+
+<ResponseField name="utr" type="string">
+  The Unique Transaction Reference confirming the bank transfer. `null` on failure.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  The final transaction status. Either `SUCCESS` or `FAILED`.
+</ResponseField>
+
+<ResponseField name="beneficiary_details" type="object">
+  <Expandable title="beneficiary_details fields">
+    <ResponseField name="beneficiary_ifsc" type="string">
+      The IFSC code of the beneficiary's bank branch.
+    </ResponseField>
+
+    <ResponseField name="beneficiary_name" type="string">
+      The full name of the beneficiary account holder.
+    </ResponseField>
+
+    <ResponseField name="beneficiary_email" type="string">
+      The email address of the beneficiary.
+    </ResponseField>
+
+    <ResponseField name="beneficiary_mobile" type="string">
+      The mobile number of the beneficiary.
+    </ResponseField>
+
+    <ResponseField name="beneficiary_acc_number" type="string">
+      The bank account number of the beneficiary.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="merchant_ref_id" type="string">
+  Your internal reference ID submitted with the PayOut request.
+</ResponseField>
+
+<Tip>
+  In production, rely on callbacks rather than polling the [Payout Status](/payouts/check-status) endpoint. Webhooks reduce latency, cut down on unnecessary API calls, and ensure your system reacts to transaction outcomes in real time.
+</Tip>
+
+<Note>
+  Configuring PayIn callbacks? See [PayIn Callbacks](/webhooks/callback-configuration).
+</Note>

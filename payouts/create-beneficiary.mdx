@@ -1,0 +1,356 @@
+---
+title: "Register a Payout Beneficiary"
+sidebarTitle: "Create Beneficiary"
+description: "Call the POST Create Beneficiary endpoint to register and verify a recipient's bank account before sending payouts — returns a reusable contact_id."
+tag: "POST"
+---
+
+Before you can send a payout, you must register the recipient as a beneficiary. This endpoint validates the bank account details you provide, runs account verification, and returns a `contact_id` that permanently represents this beneficiary in your account. You only need to call this API once per unique recipient, reuse the `contact_id` for every subsequent payout to the same person.
+
+<Tip>
+  **Quick Reference**
+
+  **Method:** `POST`
+
+  **Required:** `name`, `email`, `phone`, `bank_details` (account number, IFSC)
+
+  **Returns:** `contact_id`, verification status
+
+  **Reusable:** One `contact_id` per unique recipient across all future payouts.
+</Tip>
+
+## Endpoint
+
+```http
+POST https://api.fastflowpe.com/merchant/api/v1/verification/create-beneficiary
+```
+
+## Request Headers
+
+| Header | Value |
+| --- | --- |
+| `x-api-key` | Your API key |
+| `Content-Type` | `application/json` |
+
+## Request Body Parameters
+
+<ParamField body="name" type="string" required>
+  Full name of the beneficiary as it appears on their bank account.
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  Email address of the beneficiary.
+</ParamField>
+
+<ParamField body="phone" type="string" required>
+  Mobile phone number of the beneficiary (10 digits, no country code).
+</ParamField>
+
+<ParamField body="bank_details" type="object" required>
+  Bank account details for the beneficiary.
+
+  <Expandable title="bank_details fields">
+    <ParamField body="bank_account_number" type="string" required>
+      The beneficiary's bank account number.
+    </ParamField>
+
+    <ParamField body="ifsc" type="string" required>
+      The IFSC code of the beneficiary's bank branch (e.g., `HDFC0001234`).
+    </ParamField>
+
+    <ParamField body="account_type" type="string" required>
+      Account type — either `SAVINGS` or `CURRENT`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="verification_type" type="string" required>
+  The method used to verify the bank account. Accepted values:
+
+  - `PENNY_DROP` — transfers a small amount to the account to confirm it is active and reachable.
+  - `PENNY_LESS` — verifies account details without sending any money.
+</ParamField>
+
+<ParamField body="pan_number" type="string">
+  PAN (Permanent Account Number) of the beneficiary. Optional — pass an empty string if not available.
+</ParamField>
+
+<Note>
+  **`PENNY_DROP` vs `PENNY_LESS`:** Use `PENNY_DROP` when you want the highest confidence in account validity — a micro-deposit confirms the account is live and accepting funds. Use `PENNY_LESS` for a faster, zero-cost check that validates account details against bank records without an actual transfer.
+</Note>
+
+<RequestExample>
+
+```bash cURL
+curl --location 'https://api.fastflowpe.com/merchant/api/v1/verification/create-beneficiary' \
+--header 'x-api-key: <your-x-api-key>' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "bank_details": {
+        "bank_account_number": "1234567890",
+        "ifsc": "HDFC0001234",
+        "account_type": "SAVINGS"
+    },
+    "phone": "9999999999",
+    "pan_number": "",
+    "verification_type": "PENNY_DROP"
+}'
+```
+
+```python Python
+import requests
+
+url = "https://api.fastflowpe.com/merchant/api/v1/verification/create-beneficiary"
+headers = {"x-api-key": "<your-x-api-key>", "Content-Type": "application/json"}
+payload = {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "bank_details": {
+        "bank_account_number": "1234567890",
+        "ifsc": "HDFC0001234",
+        "account_type": "SAVINGS",
+    },
+    "phone": "9999999999",
+    "pan_number": "",
+    "verification_type": "PENNY_DROP",
+}
+
+response = requests.post(url, json=payload, headers=headers)
+print(response.json())
+```
+
+```javascript Node.js
+const response = await fetch("https://api.fastflowpe.com/merchant/api/v1/verification/create-beneficiary", {
+  method: "POST",
+  headers: {
+    "x-api-key": "<your-x-api-key>",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    name: "John Doe",
+    email: "john@example.com",
+    bank_details: {
+      bank_account_number: "1234567890",
+      ifsc: "HDFC0001234",
+      account_type: "SAVINGS",
+    },
+    phone: "9999999999",
+    pan_number: "",
+    verification_type: "PENNY_DROP",
+  }),
+});
+console.log(await response.json());
+```
+
+```java Java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+String body = """
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "bank_details": {
+    "bank_account_number": "1234567890",
+    "ifsc": "HDFC0001234",
+    "account_type": "SAVINGS"
+  },
+  "phone": "9999999999",
+  "pan_number": "",
+  "verification_type": "PENNY_DROP"
+}
+""";
+
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.fastflowpe.com/merchant/api/v1/verification/create-beneficiary"))
+    .header("x-api-key", "<your-x-api-key>")
+    .header("Content-Type", "application/json")
+    .POST(HttpRequest.BodyPublishers.ofString(body))
+    .build();
+
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+System.out.println(response.body());
+```
+
+```go Go
+package main
+
+import (
+    "bytes"
+    "fmt"
+    "io"
+    "net/http"
+)
+
+func main() {
+    payload := []byte(`{
+        "name": "John Doe",
+        "email": "john@example.com",
+        "bank_details": {"bank_account_number": "1234567890", "ifsc": "HDFC0001234", "account_type": "SAVINGS"},
+        "phone": "9999999999",
+        "pan_number": "",
+        "verification_type": "PENNY_DROP"
+    }`)
+
+    req, _ := http.NewRequest("POST", "https://api.fastflowpe.com/merchant/api/v1/verification/create-beneficiary", bytes.NewBuffer(payload))
+    req.Header.Set("x-api-key", "<your-x-api-key>")
+    req.Header.Set("Content-Type", "application/json")
+
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println(string(body))
+}
+```
+
+```php PHP
+<?php
+$payload = json_encode([
+    "name" => "John Doe",
+    "email" => "john@example.com",
+    "bank_details" => [
+        "bank_account_number" => "1234567890",
+        "ifsc" => "HDFC0001234",
+        "account_type" => "SAVINGS",
+    ],
+    "phone" => "9999999999",
+    "pan_number" => "",
+    "verification_type" => "PENNY_DROP",
+]);
+
+$ch = curl_init("https://api.fastflowpe.com/merchant/api/v1/verification/create-beneficiary");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "x-api-key: <your-x-api-key>",
+    "Content-Type: application/json",
+]);
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+```ruby Ruby
+require 'net/http'
+require 'uri'
+require 'json'
+
+uri = URI('https://api.fastflowpe.com/merchant/api/v1/verification/create-beneficiary')
+request = Net::HTTP::Post.new(uri)
+request['x-api-key'] = '<your-x-api-key>'
+request['Content-Type'] = 'application/json'
+request.body = {
+  name: 'John Doe',
+  email: 'john@example.com',
+  bank_details: {
+    bank_account_number: '1234567890',
+    ifsc: 'HDFC0001234',
+    account_type: 'SAVINGS',
+  },
+  phone: '9999999999',
+  pan_number: '',
+  verification_type: 'PENNY_DROP',
+}.to_json
+
+response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+puts response.body
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+    "status": "success",
+    "status_code": 200,
+    "message": "Beneficiary processed successfully",
+    "data": {
+        "is_new_beneficiary": false,
+        "contact_id": "61f4d33d-274a-40e7-b239-c1c28de80e19",
+        "verification": {
+            "status": "FAILED",
+            "verification_type": "PENNY_DROP",
+            "verified_at": "2026-02-11T15:22:16.986350+05:30",
+            "failure_reason": null,
+            "account_number": "1234567890",
+            "ifsc": "HDFC0001234",
+            "expiry_date": "2026-08-10T15:22:27.614446+05:30"
+        }
+    }
+}
+```
+
+</ResponseExample>
+
+## Response
+
+<ResponseField name="status" type="string">
+  Top-level result of the API call — `success` or `error`.
+</ResponseField>
+
+<ResponseField name="status_code" type="integer">
+  HTTP status code for the operation (e.g., `200`).
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable summary of the result.
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  The beneficiary record and verification outcome.
+
+  <Expandable title="data fields">
+    <ResponseField name="contact_id" type="string">
+      Unique identifier for this beneficiary in FastFlowPe. **Store this value** — you pass it as `contact_id` every time you initiate a payout to this person.
+    </ResponseField>
+
+    <ResponseField name="is_new_beneficiary" type="boolean">
+      `true` if this is the first time this bank account has been registered; `false` if it already exists in the system.
+    </ResponseField>
+
+    <ResponseField name="verification" type="object">
+      Details of the account verification attempt.
+
+      <Expandable title="verification fields">
+        <ResponseField name="status" type="string">
+          Outcome of the verification — `SUCCESS`, `FAILED`, or `PENDING`.
+        </ResponseField>
+
+        <ResponseField name="verification_type" type="string">
+          The verification method used: `PENNY_DROP` or `PENNY_LESS`.
+        </ResponseField>
+
+        <ResponseField name="verified_at" type="string">
+          ISO 8601 timestamp of when verification was attempted.
+        </ResponseField>
+
+        <ResponseField name="failure_reason" type="string | null">
+          Reason for verification failure, or `null` if verification succeeded.
+        </ResponseField>
+
+        <ResponseField name="account_number" type="string">
+          The bank account number that was verified.
+        </ResponseField>
+
+        <ResponseField name="ifsc" type="string">
+          The IFSC code associated with the verified account.
+        </ResponseField>
+
+        <ResponseField name="expiry_date" type="string">
+          ISO 8601 timestamp indicating when the verification record expires and re-verification may be required.
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<Tip>
+  Save the `contact_id` from the response in your database alongside the beneficiary's record. You'll pass it directly in the `contact_id` field when calling the Initiate Payout API — no need to look it up again.
+</Tip>

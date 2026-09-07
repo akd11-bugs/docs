@@ -1,0 +1,268 @@
+---
+title: "Initiate a Payout "
+sidebarTitle: "Initiate Transaction"
+description: "Call the POST Initiate Payout endpoint to transfer funds to a verified beneficiary via IMPS, NEFT, or RTGS — returns a transaction_id to track."
+tag: "POST"
+---
+
+Once you have a registered beneficiary and their `contact_id`, you're ready to move money. This endpoint debits your merchant virtual account and pushes funds to the beneficiary's bank account using the payment mode you specify. You can choose IMPS for instant transfers, NEFT for batch processing, or RTGS for high-value real-time settlements.
+
+<Tip>
+  **Quick Reference**
+
+  **Required:** `contact_id`, `amount`, `mode`, `reference_id`
+
+  **Modes:** `IMPS`, `NEFT`, `RTGS`
+
+  **Returns:** `transaction_id`, `status`
+</Tip>
+
+## Endpoint
+
+```http
+POST https://api.fastflowpe.com/merchant/api/v2/payout/initialize
+```
+
+## Request Headers
+
+| Header | Value |
+| --- | --- |
+| `x-api-key` | Your API key |
+| `Content-Type` | `application/json` |
+
+## Request Body Parameters
+
+<ParamField body="payment_type" type="string" required>
+  The bank transfer mode to use. Accepted values:
+
+  - `IMPS` — Immediate, 24×7 real-time transfer
+  - `NEFT` — Batch transfer, processed in hourly cycles
+  - `RTGS` — Real-time, suited for high-value transfers
+</ParamField>
+
+<ParamField body="amount" type="float" required>
+  The amount to transfer, in INR (e.g., `1000` for ₹1,000). Must be a positive value within your account balance.
+</ParamField>
+
+<ParamField body="va_id" type="string" required>
+  Your Virtual Account ID. This is provisioned by the FastFlowPe team and is also available on your merchant dashboard. Every payout is debited from the balance associated with this `va_id`.
+</ParamField>
+
+<ParamField body="contact_id" type="string">
+  The `contact_id` returned when you created the beneficiary. Identifies which registered bank account to credit.
+</ParamField>
+
+<ParamField body="merchant_ref_id" type="string">
+  Your own reference ID for this transaction — for example, an internal order ID or disbursement batch number. Pass this value to correlate payout records in your system with FastFlowPe transactions, and use it later to look up status if you don't have the `transaction_id`.
+</ParamField>
+
+<RequestExample>
+
+```bash cURL
+curl --location 'https://api.fastflowpe.com/merchant/api/v2/payout/initialize' \
+--header 'x-api-key: <your-x-api-key>' \
+--header 'Content-Type: application/json' \
+--data '{
+    "payment_type": "IMPS",
+    "amount": 1000,
+    "contact_id": "0d39ff01-eebe-4d7c-9e89-f4ae657605f4",
+    "merchant_ref_id": "TXN_REF_001",
+    "va_id": "SVA-123456"
+}'
+```
+
+```python Python
+import requests
+
+url = "https://api.fastflowpe.com/merchant/api/v2/payout/initialize"
+headers = {"x-api-key": "<your-x-api-key>", "Content-Type": "application/json"}
+payload = {
+    "payment_type": "IMPS",
+    "amount": 1000,
+    "contact_id": "0d39ff01-eebe-4d7c-9e89-f4ae657605f4",
+    "merchant_ref_id": "TXN_REF_001",
+    "va_id": "SVA-123456",
+}
+
+response = requests.post(url, json=payload, headers=headers)
+print(response.json())
+```
+
+```javascript Node.js
+const response = await fetch("https://api.fastflowpe.com/merchant/api/v2/payout/initialize", {
+  method: "POST",
+  headers: {
+    "x-api-key": "<your-x-api-key>",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    payment_type: "IMPS",
+    amount: 1000,
+    contact_id: "0d39ff01-eebe-4d7c-9e89-f4ae657605f4",
+    merchant_ref_id: "TXN_REF_001",
+    va_id: "SVA-123456",
+  }),
+});
+console.log(await response.json());
+```
+
+```java Java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+String body = """
+{
+  "payment_type": "IMPS",
+  "amount": 1000,
+  "contact_id": "0d39ff01-eebe-4d7c-9e89-f4ae657605f4",
+  "merchant_ref_id": "TXN_REF_001",
+  "va_id": "SVA-123456"
+}
+""";
+
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.fastflowpe.com/merchant/api/v2/payout/initialize"))
+    .header("x-api-key", "<your-x-api-key>")
+    .header("Content-Type", "application/json")
+    .POST(HttpRequest.BodyPublishers.ofString(body))
+    .build();
+
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+System.out.println(response.body());
+```
+
+```go Go
+package main
+
+import (
+    "bytes"
+    "fmt"
+    "io"
+    "net/http"
+)
+
+func main() {
+    payload := []byte(`{
+        "payment_type": "IMPS",
+        "amount": 1000,
+        "contact_id": "0d39ff01-eebe-4d7c-9e89-f4ae657605f4",
+        "merchant_ref_id": "TXN_REF_001",
+        "va_id": "SVA-123456"
+    }`)
+
+    req, _ := http.NewRequest("POST", "https://api.fastflowpe.com/merchant/api/v2/payout/initialize", bytes.NewBuffer(payload))
+    req.Header.Set("x-api-key", "<your-x-api-key>")
+    req.Header.Set("Content-Type", "application/json")
+
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println(string(body))
+}
+```
+
+```php PHP
+<?php
+$payload = json_encode([
+    "payment_type" => "IMPS",
+    "amount" => 1000,
+    "contact_id" => "0d39ff01-eebe-4d7c-9e89-f4ae657605f4",
+    "merchant_ref_id" => "TXN_REF_001",
+    "va_id" => "SVA-123456",
+]);
+
+$ch = curl_init("https://api.fastflowpe.com/merchant/api/v2/payout/initialize");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "x-api-key: <your-x-api-key>",
+    "Content-Type: application/json",
+]);
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+```ruby Ruby
+require 'net/http'
+require 'uri'
+require 'json'
+
+uri = URI('https://api.fastflowpe.com/merchant/api/v2/payout/initialize')
+request = Net::HTTP::Post.new(uri)
+request['x-api-key'] = '<your-x-api-key>'
+request['Content-Type'] = 'application/json'
+request.body = {
+  payment_type: 'IMPS',
+  amount: 1000,
+  contact_id: '0d39ff01-eebe-4d7c-9e89-f4ae657605f4',
+  merchant_ref_id: 'TXN_REF_001',
+  va_id: 'SVA-123456',
+}.to_json
+
+response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+puts response.body
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+    "status": "success",
+    "status_code": 200,
+    "message": "Payout Initiation Success",
+    "data": {
+        "message": "Payout Initiation Success",
+        "transaction_id": "your-transaction-id-here",
+        "reason": "Message String Here"
+    }
+}
+```
+
+</ResponseExample>
+
+## Response
+
+<ResponseField name="status" type="string">
+  Top-level result of the API call — `success` or `error`.
+</ResponseField>
+
+<ResponseField name="status_code" type="integer">
+  HTTP status code for the operation (e.g., `200`).
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable summary of the result.
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  Details of the initiated payout.
+
+  <Expandable title="data fields">
+    <ResponseField name="transaction_id" type="string">
+      FastFlowPe's unique identifier for this payout transaction. **Store this value** — you'll use it to check the payout status using the Check Status API.
+    </ResponseField>
+
+    <ResponseField name="message" type="string">
+      Confirmation message for the payout initiation.
+    </ResponseField>
+
+    <ResponseField name="reason" type="string">
+      Additional context or reason string from the payment network, if available.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<Note>
+  A successful response (`"status": "success"`) means FastFlowPe has **accepted and queued** your payout request — it does not mean the funds have already reached the beneficiary. Use the [Check Status API](/payouts/check-status) with the returned `transaction_id` to confirm final settlement.
+</Note>
+
+<Tip>
+  Always populate `merchant_ref_id` with a unique identifier from your own system (such as an order ID or batch reference). This gives you a second lookup key if you ever need to query status without the `transaction_id`, and it makes reconciliation significantly easier.
+</Tip>

@@ -1,0 +1,255 @@
+---
+title: "Check the Processing Status "
+sidebarTitle: "Refund Status"
+description: "Use this POST endpoint to retrieve the latest processing status of a refund using the refund transaction ID returned by the Initiate Refund API."
+tag: "POST"
+---
+
+After initiating a refund, use this endpoint to poll for its latest status. Pass the refund transaction ID (not the original PayIn transaction ID) that was returned by the [Initiate Refund API](/refunds/initiate-refund). A successfully processed refund returns a `SUCCESS` status along with a UTR (Unique Transaction Reference) confirming the bank transfer.
+
+<Tip>
+  **Quick Reference**
+
+  **Method:** `POST`
+
+  **Required:** `transaction_id` (the **refund** transaction ID, not the original PayIn ID)
+
+  **Returns:** `status`, `utr`, `refund_amount`, `created_at`
+
+  **Terminal statuses:** `SUCCESS`, `FAILED`, `PENDING`
+</Tip>
+
+## Endpoint Details
+
+| Field | Value |
+| --- | --- |
+| Method | `POST` |
+| Payload | `JSON` |
+| URL | `https://api.fastflowpe.com/merchant/payin/refund/status` |
+
+## Request Headers
+
+<ParamField header="x-api-key" type="string" required>
+  Your secret API key issued from the FastFlowPe merchant dashboard.
+</ParamField>
+
+<ParamField header="Content-Type" type="string" required>
+  Must be `application/json`.
+</ParamField>
+
+## Request Body
+
+<ParamField body="transaction_id" type="string" required>
+  The refund transaction ID returned by the Initiate Refund API. This is distinct from the original PayIn transaction ID.
+</ParamField>
+
+<RequestExample>
+
+```bash cURL
+curl --location 'https://api.fastflowpe.com/merchant/payin/refund/status' \
+--header 'x-api-key: <your-api-key>' \
+--header 'Content-Type: application/json' \
+--data '{"transaction_id": "636724e7-80d1-4cfd-8db3-ace0bec0616a"}'
+```
+
+```python Python
+import requests
+
+url = "https://api.fastflowpe.com/merchant/payin/refund/status"
+headers = {"x-api-key": "<your-api-key>", "Content-Type": "application/json"}
+payload = {"transaction_id": "636724e7-80d1-4cfd-8db3-ace0bec0616a"}
+
+response = requests.post(url, json=payload, headers=headers)
+print(response.json())
+```
+
+```javascript Node.js
+const response = await fetch("https://api.fastflowpe.com/merchant/payin/refund/status", {
+  method: "POST",
+  headers: {
+    "x-api-key": "<your-api-key>",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ transaction_id: "636724e7-80d1-4cfd-8db3-ace0bec0616a" }),
+});
+console.log(await response.json());
+```
+
+```java Java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.fastflowpe.com/merchant/payin/refund/status"))
+    .header("x-api-key", "<your-api-key>")
+    .header("Content-Type", "application/json")
+    .POST(HttpRequest.BodyPublishers.ofString("{\"transaction_id\": \"636724e7-80d1-4cfd-8db3-ace0bec0616a\"}"))
+    .build();
+
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+System.out.println(response.body());
+```
+
+```go Go
+package main
+
+import (
+    "bytes"
+    "fmt"
+    "io"
+    "net/http"
+)
+
+func main() {
+    payload := []byte(`{"transaction_id": "636724e7-80d1-4cfd-8db3-ace0bec0616a"}`)
+    req, _ := http.NewRequest("POST", "https://api.fastflowpe.com/merchant/payin/refund/status", bytes.NewBuffer(payload))
+    req.Header.Set("x-api-key", "<your-api-key>")
+    req.Header.Set("Content-Type", "application/json")
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println(string(body))
+}
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.fastflowpe.com/merchant/payin/refund/status");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(["transaction_id" => "636724e7-80d1-4cfd-8db3-ace0bec0616a"]));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "x-api-key: <your-api-key>",
+    "Content-Type: application/json",
+]);
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+```ruby Ruby
+require 'net/http'
+require 'uri'
+require 'json'
+
+uri = URI('https://api.fastflowpe.com/merchant/payin/refund/status')
+request = Net::HTTP::Post.new(uri)
+request['x-api-key'] = '<your-api-key>'
+request['Content-Type'] = 'application/json'
+request.body = { transaction_id: '636724e7-80d1-4cfd-8db3-ace0bec0616a' }.to_json
+
+response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+puts response.body
+```
+
+</RequestExample>
+
+## Response
+
+Both a successful refund and a failed refund return an HTTP `200` with `"status": "success"` — the outcome of the refund itself is reflected in `data.status`. A `4xx` response with `"status": "error"` is returned when the request itself is invalid (e.g. an unrecognised transaction ID).
+
+<ResponseExample>
+
+```json Success (Refund Processed)
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Refund status retrieved successfully",
+  "data": {
+    "transaction_id": "636724e7-80d1-4cfd-8db3-ace0bec0616a",
+    "original_transaction_id": "a6aac4a4-9516-4076-9b01-e28c3c57aa80",
+    "status": "SUCCESS",
+    "amount": "150.00",
+    "utr": "619704648408"
+  }
+}
+```
+
+```json Failed (Refund Not Processed)
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Refund status retrieved successfully",
+  "data": {
+    "transaction_id": "636724e7-80d1-4cfd-8db3-ace0bec0616a",
+    "original_transaction_id": "a6aac4a4-9516-4076-9b01-e28c3c57aa80",
+    "status": "FAILED",
+    "amount": "150.00",
+    "utr": null
+  }
+}
+```
+
+```json Error (4xx)
+{
+  "status": "error",
+  "status_code": "4xx",
+  "message": "<reason for failure>",
+  "data": null
+}
+```
+
+</ResponseExample>
+
+### Response Fields
+
+<ResponseField name="transaction_id" type="string">
+  The refund transaction UUID you queried.
+</ResponseField>
+
+<ResponseField name="original_transaction_id" type="string">
+  The UUID of the original PayIn transaction that this refund was raised against.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  The outcome of the refund. Possible values are `SUCCESS`, `FAILED`, or `INITIATED` (still processing).
+</ResponseField>
+
+<ResponseField name="amount" type="string">
+  The refund amount that was requested.
+</ResponseField>
+
+<ResponseField name="utr" type="string">
+  The Unique Transaction Reference issued by the bank confirming the refund transfer. This is `null` when the refund has not yet succeeded.
+</ResponseField>
+
+## Refund Webhook Payloads
+
+FastFlowPe also pushes a callback to your configured webhook URL when a refund's status changes, so you don't need to poll continuously.
+
+<CodeGroup>
+
+```json Success Webhook
+{
+  "transaction": {
+    "id": "<Transaction UUID>",
+    "amount": "<Transaction amount>",
+    "payment_type": "<Payment mode>",
+    "utr": "<Unique Transaction Reference>",
+    "status": "SUCCESS",
+    "transaction_details": "<Customer info object>"
+  }
+}
+```
+
+```json Failed Webhook
+{
+  "transaction": {
+    "id": "<Transaction UUID>",
+    "amount": "<Transaction amount>",
+    "payment_type": "<Payment mode>",
+    "utr": null,
+    "status": "FAILED",
+    "transaction_details": "<Customer info object>"
+  }
+}
+```
+
+</CodeGroup>
+
+<Note>
+  Configure your webhook URL in the dashboard under **Settings → Webhooks** to receive real-time refund status updates. See the [Callback Configuration](/webhooks/callback-configuration) guide for setup instructions.
+</Note>

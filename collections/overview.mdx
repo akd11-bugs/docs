@@ -1,0 +1,33 @@
+---
+title: "Collections Overview"
+sidebarTitle: "Collection Overview"
+description: "Learn the two PayIn approaches FastFlowPe offers — Payment Links and the Transaction API — to start accepting money from your customers."
+---
+
+Collections in FastFlowPe refer to the **PayIn** flow — the process of accepting money from your customers. Whether you need a quick no-code link to share over email or SMS, or a fully programmatic checkout integration, FastFlowPe gives you two distinct approaches to suit your use case.
+
+## Two Ways to Accept Payments
+
+**Payment Links** let you generate a hosted payment URL by passing your order details and customer information to the API. FastFlowPe returns a ready-to-share link that the customer opens in their browser to complete the payment. This approach requires no frontend work and fits seamlessly into email, SMS, and messaging flows.
+
+**Transaction API** gives you programmatic control over the payment initiation process. You call the Initiate PayIn endpoint, receive a `transaction_id` and a `checkout_url`, then redirect your customer to that URL to complete payment. This approach is ideal when you need full control over the checkout experience, want to attach custom metadata, or are building a native mobile or web checkout.
+
+<CardGroup cols={2}>
+  <Card title="Payment Links" icon="link" href="/collections/payment-links/create">
+    Create a hosted payment URL and share it with your customer over any channel.
+  </Card>
+
+  <Card title="Transaction API" icon="code" href="/collections/transaction-api/initiate-payin">
+    Programmatically initiate a PayIn and redirect your customer to the checkout URL.
+  </Card>
+</CardGroup>
+
+## Before You Begin
+
+<Note>
+  Every request to the Collections API must include your merchant `x-api-key` in the request header. This key identifies your account and authorises the transaction.
+</Note>
+
+<Note>
+  The minimum amount for any PayIn transaction is **₹200**. Requests with a lower amount will be rejected.
+</Note>

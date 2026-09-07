@@ -1,0 +1,37 @@
+---
+title: "Refund Overview"
+sidebarTitle: "Refund Overview"
+description: "Reverse a completed PayIn transaction back to the customer's original payment method using the FastFlowPe Refund APIs — initiate a refund, then track its status."
+---
+
+Refunds let you return funds from a successful PayIn transaction back to the customer's original payment source. FastFlowPe processes refunds asynchronously: you initiate a refund, receive a refund transaction ID, and then poll (or listen to webhooks) for the final settlement status.
+
+## How refunds work
+
+<Steps>
+  <Step title="Initiate the refund">
+    Call [Initiate Refund](/refunds/initiate-refund) with the original PayIn `transaction_id` and the amount to refund. FastFlowPe returns a unique `refund_transaction_id`.
+  </Step>
+  <Step title="Track the status">
+    Use [Check Refund Status](/refunds/check-refund-status) with the `refund_transaction_id` to confirm whether the refund has been credited back to the customer.
+  </Step>
+  <Step title="Receive webhook updates">
+    Configure a [webhook callback](/webhooks/callback-configuration) to receive real-time refund status changes instead of polling.
+  </Step>
+</Steps>
+
+## Available APIs
+
+<CardGroup cols={2}>
+  <Card title="Initiate Refund" icon="undo-2" href="/refunds/initiate-refund">
+    Create a refund request against a completed PayIn transaction.
+  </Card>
+
+  <Card title="Check Refund Status" icon="search" href="/refunds/check-refund-status">
+    Retrieve the current processing state of a refund by refund transaction ID.
+  </Card>
+</CardGroup>
+
+<Note>
+  Refunds can only be issued against **successful** PayIn transactions. You can refund the full amount or a partial amount, but the total refunded amount cannot exceed the original transaction value.
+</Note>

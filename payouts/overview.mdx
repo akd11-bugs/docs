@@ -1,0 +1,63 @@
+---
+title: "Fund Transfer Overview"
+sidebarTitle: "Fund transfer Overview"
+description: "Send money from your merchant account to any bank account using IMPS, NEFT, or RTGS — create a beneficiary, initiate a payout, then track its status."
+---
+
+FastFlowPe's Fund Transfer (Payout) feature lets you programmatically move funds from your merchant account directly into a beneficiary's bank account. Whether you're disbursing salaries, settling vendor payments, or issuing refunds outside the platform, the payout flow gives you full control over where money goes and when.
+
+## How It Works
+
+Sending a payout involves three sequential steps. Once you register a beneficiary, you can reuse their `contact_id` for all future transfers — you never need to re-register the same person.
+
+<Steps>
+  <Step title="Create a Beneficiary">
+    Register the recipient's bank details and verify their account. You receive a `contact_id` that represents this beneficiary in all subsequent API calls.
+  </Step>
+  <Step title="Initiate a Payout">
+    Submit a transfer request using your `va_id`, the beneficiary's `contact_id`, the amount, and your preferred payment mode. You receive a `transaction_id` in return.
+  </Step>
+  <Step title="Check Status ">
+    Query the transaction status using the `transaction_id` or your own `merchant_ref_id`, or check your current merchant account balance.
+  </Step>
+</Steps>
+
+## Supported Payment Modes
+
+FastFlowPe supports three bank transfer modes. Choose based on your speed and amount requirements:
+
+| Mode | Description |
+| --- | --- |
+| **IMPS** | Immediate Payment Service — real-time, 24×7, suitable for most payouts |
+| **NEFT** | National Electronic Funds Transfer — batch-based, processed in hourly cycles |
+| **RTGS** | Real Time Gross Settlement — real-time, designed for high-value transfers |
+
+## Before You Begin
+
+<Note>
+  You need a **Virtual Account ID (`va_id`)** to initiate payouts. Your `va_id` is provisioned by the FastFlowPe team and is also available on your merchant dashboard. Keep it handy — every payout request requires it.
+</Note>
+
+<Note>
+  The `contact_id` returned when you create a beneficiary is **permanent and reusable**. Store it in your system and pass it directly on every future payout to that same beneficiary — you do not need to call Create Beneficiary again.
+</Note>
+
+## Explore the Payout APIs
+
+<CardGroup cols={2}>
+  <Card title="Create Beneficiary" icon="user-plus" href="/payouts/create-beneficiary">
+    Register a recipient's bank details and receive a `contact_id` for future transfers.
+  </Card>
+
+  <Card title="Initiate Payout" icon="paper-plane" href="/payouts/initiate-payout">
+    Trigger a fund transfer to a registered beneficiary via IMPS, NEFT, or RTGS.
+  </Card>
+
+  <Card title="Check Status" icon="magnifying-glass" href="/payouts/check-status">
+    Query the status of a payout transaction or check your merchant account balance.
+  </Card>
+
+  <Card title="Callback Configuration" icon="webhook" href="/webhooks/callback-configuration">
+    Set up a webhook URL to receive real-time payout status updates automatically.
+  </Card>
+</CardGroup>

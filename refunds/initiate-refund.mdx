@@ -1,0 +1,240 @@
+---
+title: "Initiate a Refund"
+sidebarTitle: "Initiate Refund"
+description: "Use this POST endpoint to create a refund request against a successful PayIn transaction and receive a unique refund transaction ID."
+tag: "POST"
+---
+
+Refunds can only be issued against previously successful PayIn transactions, you cannot refund a failed or pending payment. Partial refunds are fully supported, meaning you can refund any amount up to the original transaction value, and issue multiple partial refunds until the full amount is returned.
+
+<Tip>
+  **Quick Reference**
+
+  **Required:** `transaction_id`, `refund_amount`, `refund_reference_id`
+
+  **Returns:** `refund_transaction_id`, `status`
+
+  **Rule:** Original transaction must be `SUCCESS`
+</Tip>
+
+## Endpoint Details
+
+| Field | Value |
+| --- | --- |
+| Method | `POST` |
+| Payload | `JSON` |
+| URL | `https://api.fastflowpe.com/merchant/payin/refund/initiate` |
+
+## Request Headers
+
+<ParamField header="x-api-key" type="string" required>
+  Your secret API key issued from the FastFlowPe merchant dashboard.
+</ParamField>
+
+<ParamField header="Content-Type" type="string" required>
+  Must be `application/json`.
+</ParamField>
+
+## Request Body
+
+<ParamField body="transaction_id" type="string" required>
+  The original PayIn transaction ID you want to refund. This is the UUID returned when the payment was first created.
+</ParamField>
+
+<ParamField body="amount" type="float" required>
+  The amount to refund. This can be less than the original transaction amount to issue a partial refund. It cannot exceed the remaining refundable balance.
+</ParamField>
+
+<RequestExample>
+
+```bash cURL
+curl --location 'https://api.fastflowpe.com/merchant/payin/refund/initiate' \
+--header 'x-api-key: <your-api-key>' \
+--header 'Content-Type: application/json' \
+--data '{
+    "transaction_id": "a6aac4a4-9516-4076-9b01-e28c3c57aa80",
+    "amount": 150
+}'
+```
+
+```python Python
+import requests
+
+url = "https://api.fastflowpe.com/merchant/payin/refund/initiate"
+headers = {"x-api-key": "<your-api-key>", "Content-Type": "application/json"}
+payload = {
+    "transaction_id": "a6aac4a4-9516-4076-9b01-e28c3c57aa80",
+    "amount": 150,
+}
+
+response = requests.post(url, json=payload, headers=headers)
+print(response.json())
+```
+
+```javascript Node.js
+const response = await fetch("https://api.fastflowpe.com/merchant/payin/refund/initiate", {
+  method: "POST",
+  headers: {
+    "x-api-key": "<your-api-key>",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    transaction_id: "a6aac4a4-9516-4076-9b01-e28c3c57aa80",
+    amount: 150,
+  }),
+});
+console.log(await response.json());
+```
+
+```java Java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+String body = "{\"transaction_id\": \"a6aac4a4-9516-4076-9b01-e28c3c57aa80\", \"amount\": 150}";
+
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.fastflowpe.com/merchant/payin/refund/initiate"))
+    .header("x-api-key", "<your-api-key>")
+    .header("Content-Type", "application/json")
+    .POST(HttpRequest.BodyPublishers.ofString(body))
+    .build();
+
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+System.out.println(response.body());
+```
+
+```go Go
+package main
+
+import (
+    "bytes"
+    "fmt"
+    "io"
+    "net/http"
+)
+
+func main() {
+    payload := []byte(`{"transaction_id": "a6aac4a4-9516-4076-9b01-e28c3c57aa80", "amount": 150}`)
+    req, _ := http.NewRequest("POST", "https://api.fastflowpe.com/merchant/payin/refund/initiate", bytes.NewBuffer(payload))
+    req.Header.Set("x-api-key", "<your-api-key>")
+    req.Header.Set("Content-Type", "application/json")
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println(string(body))
+}
+```
+
+```php PHP
+<?php
+$payload = json_encode([
+    "transaction_id" => "a6aac4a4-9516-4076-9b01-e28c3c57aa80",
+    "amount" => 150,
+]);
+
+$ch = curl_init("https://api.fastflowpe.com/merchant/payin/refund/initiate");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "x-api-key: <your-api-key>",
+    "Content-Type: application/json",
+]);
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+```ruby Ruby
+require 'net/http'
+require 'uri'
+require 'json'
+
+uri = URI('https://api.fastflowpe.com/merchant/payin/refund/initiate')
+request = Net::HTTP::Post.new(uri)
+request['x-api-key'] = '<your-api-key>'
+request['Content-Type'] = 'application/json'
+request.body = {
+  transaction_id: 'a6aac4a4-9516-4076-9b01-e28c3c57aa80',
+  amount: 150,
+}.to_json
+
+response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+puts response.body
+```
+
+</RequestExample>
+
+## Response
+
+A successful request returns a `200` status with a `INITIATED` refund status and a breakdown of the original transaction's refund balances.
+
+<ResponseExample>
+
+```json Success
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Refund Initiated Successfully",
+  "data": {
+    "transaction_id": "<Refund Transaction ID>",
+    "original_transaction_id": "<Original Transaction UUID>",
+    "status": "INITIATED",
+    "original_amount": "500.00",
+    "already_refunded": "0.00",
+    "remaining_refundable": "350.00"
+  }
+}
+```
+
+```json Failure
+{
+  "status": "error",
+  "status_code": "4xx",
+  "message": "<reason for failure>",
+  "data": {
+    "original_amount": "500.00",
+    "already_refunded": "150.00",
+    "remaining_refundable": "0.00"
+  }
+}
+```
+
+</ResponseExample>
+
+### Response Fields
+
+<ResponseField name="transaction_id" type="string">
+  The unique ID assigned to this refund. Save this value — you'll use it to check the refund status.
+</ResponseField>
+
+<ResponseField name="original_transaction_id" type="string">
+  The UUID of the original PayIn transaction against which this refund was raised.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  The current state of the refund. Immediately after initiation this will be `INITIATED`.
+</ResponseField>
+
+<ResponseField name="original_amount" type="string">
+  The total amount of the original PayIn transaction.
+</ResponseField>
+
+<ResponseField name="already_refunded" type="string">
+  The cumulative amount already refunded against the original transaction prior to this request.
+</ResponseField>
+
+<ResponseField name="remaining_refundable" type="string">
+  The remaining balance that can still be refunded on the original transaction after this refund is processed.
+</ResponseField>
+
+<Note>
+  Save the `transaction_id` returned in the success response — this is your refund transaction ID and is required to check the refund status using the [Check Refund Status API](/refunds/check-refund-status).
+</Note>
+
+<Tip>
+  Check `remaining_refundable` to confirm how much balance is still available for future partial refunds on the same original transaction.
+</Tip>

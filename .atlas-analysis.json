@@ -1,0 +1,85 @@
+{
+  "projectType": "saas",
+  "projectName": "FastFlowPe",
+  "projectDescription": "FastFlowPe is a merchant payment platform that enables businesses to accept payments (PayIn), send payouts (fund transfers), and manage refunds via REST APIs and a merchant dashboard.",
+  "theme": "luma",
+  "primaryColor": "#2563EB",
+  "lightColor": "#DBEAFE",
+  "darkColor": "#1E3A8A",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "integration/integration-guidelines",
+              "integration/client-credentials",
+              "integration/api-authentication",
+              "integration/ip-whitelisting"
+            ]
+          },
+          {
+            "group": "Collections (PayIn)",
+            "pages": [
+              "collections/overview",
+              "collections/payment-links/create",
+              "collections/payment-links/check-status",
+              "collections/payment-links/psp-providers",
+              "collections/transaction-api/initiate-payin",
+              "collections/transaction-api/check-transaction"
+            ]
+          },
+          {
+            "group": "Fund Transfer (PayOut)",
+            "pages": [
+              "payouts/overview",
+              "payouts/create-beneficiary",
+              "payouts/initiate-payout",
+              "payouts/check-status"
+            ]
+          },
+          {
+            "group": "Refunds",
+            "pages": [
+              "refunds/initiate-refund",
+              "refunds/check-refund-status"
+            ]
+          },
+          {
+            "group": "Webhooks & Support",
+            "pages": [
+              "webhooks/callback-configuration",
+              "support/help-centre"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Payment Links — create hosted, shareable payment URLs for customers",
+    "PayIn API — programmatically initiate payment transactions (QR, UPI Intent, cards, netbanking)",
+    "Payout API — transfer funds to beneficiaries via IMPS, NEFT, RTGS",
+    "Refund API — initiate and track refunds for completed PayIn transactions",
+    "Webhook callbacks — real-time transaction status updates delivered to merchant endpoints",
+    "X-API-Key authentication — short-lived tokens with IP whitelisting for secure API access",
+    "Merchant Dashboard — manage credentials, API keys, IP whitelist, webhooks, and support tickets"
+  ],
+  "publicApiSurface": [
+    "GET  https://auth.fastflowpe.com/system/generate_x_api_token_merchant",
+    "POST https://api.fastflowpe.com/merchant/payment-links/create",
+    "GET  https://api.fastflowpe.com/merchant/payment-links/v3/check-payment-status",
+    "GET  https://api.fastflowpe.com/merchant/payment-links/v3/get-payin-providers",
+    "POST https://api.fastflowpe.com/merchant/payin/initialize",
+    "POST https://api.fastflowpe.com/merchant/payin/status",
+    "POST https://api.fastflowpe.com/merchant/api/v1/verification/create-beneficiary",
+    "POST https://api.fastflowpe.com/merchant/api/v2/payout/initialize",
+    "POST https://api.fastflowpe.com/merchant/payout/status",
+    "GET  https://api.fastflowpe.com/merchant/payout/api/merchant/balance",
+    "POST https://api.fastflowpe.com/merchant/payin/refund/initiate",
+    "POST https://api.fastflowpe.com/merchant/payin/refund/status"
+  ]
+}

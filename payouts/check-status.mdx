@@ -1,0 +1,378 @@
+---
+title: "Check Transaction Status and Account Balance"
+sidebarTitle: "Transaction Status"
+description: "Use the POST status endpoint to query any payout's outcome and the GET balance endpoint to check available funds in your merchant virtual account."
+tag: "POST"
+icon: "cube"
+---
+
+After initiating a payout, you'll want to confirm whether the transfer reached the beneficiary and monitor your available funds. This page covers two endpoints: one to query the status of a specific payout transaction, and another to retrieve your current merchant account balance.
+
+<Tip>
+  **Quick Reference**
+
+  **Payout Status:** `POST /merchant/payout/status` Required: `transaction_id` **or** `merchant_ref_id` Returns: `status`, `utr`, `amount`, `mode`
+
+  **Account Balance:** `GET /merchant/payout/balance` Required: `x-api-key` header only Returns: `available_balance`, `locked_balance`
+
+  **Note:** Status endpoint is rate-limited. Use webhooks for real-time updates.
+</Tip>
+
+---
+
+## API 1: Check Payout Transaction Status
+
+Query the outcome of a payout you previously initiated. Supply either the `transaction_id` returned by FastFlowPe or your own `merchant_ref_id` — you only need one.
+
+### Endpoint
+
+```http
+POST https://api.fastflowpe.com/merchant/payout/status
+```
+
+### Request Headers
+
+| Header | Value |
+| --- | --- |
+| `x-api-key` | Your API key |
+| `Content-Type` | `application/json` |
+
+### Request Body Parameters
+
+<ParamField body="transaction_id" type="string">
+  The `transaction_id` returned in the Initiate Payout response. Use this **or** `merchant_ref_id` — you don't need both.
+</ParamField>
+
+<ParamField body="merchant_ref_id" type="string">
+  Your own reference ID that you supplied when initiating the payout. Use this **or** `transaction_id` — you don't need both.
+</ParamField>
+
+<Warning>
+  This endpoint is protected by an **active rate limiter**. Do not poll it in a tight loop or at high frequency — excessive requests will be throttled. For production systems, rely on [webhooks](/webhooks/callback-configuration) to receive status updates automatically and use this endpoint only for on-demand lookups.
+</Warning>
+
+<RequestExample>
+
+```bash cURL
+curl --location 'https://api.fastflowpe.com/merchant/payout/status' \
+--header 'Content-Type: application/json' \
+--header 'x-api-key: <your-x-api-key>' \
+--data '{"transaction_id": "your-transaction-id"}'
+```
+
+```python Python
+import requests
+
+url = "https://api.fastflowpe.com/merchant/payout/status"
+headers = {"x-api-key": "<your-x-api-key>", "Content-Type": "application/json"}
+payload = {"transaction_id": "your-transaction-id"}
+
+response = requests.post(url, json=payload, headers=headers)
+print(response.json())
+```
+
+```javascript Node.js
+const response = await fetch("https://api.fastflowpe.com/merchant/payout/status", {
+  method: "POST",
+  headers: {
+    "x-api-key": "<your-x-api-key>",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ transaction_id: "your-transaction-id" }),
+});
+console.log(await response.json());
+```
+
+```java Java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.fastflowpe.com/merchant/payout/status"))
+    .header("x-api-key", "<your-x-api-key>")
+    .header("Content-Type", "application/json")
+    .POST(HttpRequest.BodyPublishers.ofString("{\"transaction_id\": \"your-transaction-id\"}"))
+    .build();
+
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+System.out.println(response.body());
+```
+
+```go Go
+package main
+
+import (
+    "bytes"
+    "fmt"
+    "io"
+    "net/http"
+)
+
+func main() {
+    payload := []byte(`{"transaction_id": "your-transaction-id"}`)
+    req, _ := http.NewRequest("POST", "https://api.fastflowpe.com/merchant/payout/status", bytes.NewBuffer(payload))
+    req.Header.Set("x-api-key", "<your-x-api-key>")
+    req.Header.Set("Content-Type", "application/json")
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println(string(body))
+}
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.fastflowpe.com/merchant/payout/status");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(["transaction_id" => "your-transaction-id"]));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "x-api-key: <your-x-api-key>",
+    "Content-Type: application/json",
+]);
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+```ruby Ruby
+require 'net/http'
+require 'uri'
+require 'json'
+
+uri = URI('https://api.fastflowpe.com/merchant/payout/status')
+request = Net::HTTP::Post.new(uri)
+request['x-api-key'] = '<your-x-api-key>'
+request['Content-Type'] = 'application/json'
+request.body = { transaction_id: 'your-transaction-id' }.to_json
+
+response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+puts response.body
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+    "status": "success",
+    "status_code": 200,
+    "message": "Transaction status retrieved successfully",
+    "data": {
+        "status": "SUCCESS"
+    }
+}
+```
+
+</ResponseExample>
+
+### Response
+
+<ResponseField name="status" type="string">
+  Top-level API call result — `success` or `error`.
+</ResponseField>
+
+<ResponseField name="status_code" type="integer">
+  HTTP status code (e.g., `200`).
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable description of the result.
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  The payout status payload.
+
+  <Expandable title="data fields">
+    <ResponseField name="status" type="string">
+      Current state of the payout transaction. Common values:
+
+      - `SUCCESS` — funds have been successfully credited to the beneficiary.
+      - `FAILED` — the transfer was not completed; check webhook details for the reason.
+      - `PENDING` — the transfer is still in progress.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## API 2: Check Merchant Balance
+
+Retrieve the current available balance in your merchant virtual account before initiating payouts or for reconciliation purposes.
+
+### Endpoint
+
+```http
+GET https://api.fastflowpe.com/merchant/payout/api/merchant/balance
+```
+
+### Request Headers
+
+| Header | Value |
+| --- | --- |
+| `x-api-key` | Your API key |
+
+### Query Parameters
+
+<ParamField query="va_id" type="string" required>
+  Your Virtual Account ID. The balance returned is specific to this virtual account.
+</ParamField>
+
+<RequestExample>
+
+```bash cURL
+curl --location 'https://api.fastflowpe.com/merchant/payout/api/merchant/balance?va_id=SVA-123456' \
+--header 'x-api-key: <your-x-api-key>'
+```
+
+```python Python
+import requests
+
+url = "https://api.fastflowpe.com/merchant/payout/api/merchant/balance"
+response = requests.get(url, params={"va_id": "SVA-123456"}, headers={"x-api-key": "<your-x-api-key>"})
+print(response.json())
+```
+
+```javascript Node.js
+const response = await fetch("https://api.fastflowpe.com/merchant/payout/api/merchant/balance?va_id=SVA-123456", {
+  headers: { "x-api-key": "<your-x-api-key>" },
+});
+console.log(await response.json());
+```
+
+```java Java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.fastflowpe.com/merchant/payout/api/merchant/balance?va_id=SVA-123456"))
+    .header("x-api-key", "<your-x-api-key>")
+    .GET()
+    .build();
+
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+System.out.println(response.body());
+```
+
+```go Go
+package main
+
+import (
+    "fmt"
+    "io"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://api.fastflowpe.com/merchant/payout/api/merchant/balance?va_id=SVA-123456", nil)
+    req.Header.Set("x-api-key", "<your-x-api-key>")
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println(string(body))
+}
+```
+
+```php PHP
+<?php
+$ch = curl_init("https://api.fastflowpe.com/merchant/payout/api/merchant/balance?va_id=SVA-123456");
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["x-api-key: <your-x-api-key>"]);
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+```ruby Ruby
+require 'net/http'
+require 'uri'
+
+uri = URI('https://api.fastflowpe.com/merchant/payout/api/merchant/balance?va_id=SVA-123456')
+request = Net::HTTP::Get.new(uri)
+request['x-api-key'] = '<your-x-api-key>'
+response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+puts response.body
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json 200
+{
+    "status": "success",
+    "status_code": 200,
+    "message": "Balance fetched successfully",
+    "data": {
+        "merchant_id": "<Your merchant id>",
+        "balance": 500.0
+    }
+}
+```
+
+</ResponseExample>
+
+### Response
+
+<ResponseField name="status" type="string">
+  Top-level API call result — `success` or `error`.
+</ResponseField>
+
+<ResponseField name="status_code" type="integer">
+  HTTP status code (e.g., `200`).
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable description of the result.
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  The balance payload for your merchant account.
+
+  <Expandable title="data fields">
+    <ResponseField name="merchant_id" type="string">
+      Your FastFlowPe merchant identifier.
+    </ResponseField>
+
+    <ResponseField name="balance" type="float">
+      The current available balance in INR associated with the specified `va_id`.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## Webhook Alternative
+
+<Tip>
+  For production systems, configure a **webhook callback URL** instead of polling the status endpoint. FastFlowPe sends a `POST` request to your callback URL the moment a payout status changes, giving you real-time updates without any rate-limit concerns. See [Callback Configuration](/webhooks/callback-configuration) to set up your endpoint.
+</Tip>
+
+FastFlowPe delivers the following payload to your webhook URL on every payout status change:
+
+```json Webhook Payload
+{
+    "transaction": {
+        "id": "5314e23a-4931-400f-b499-c4347ad0c7f3",
+        "amount": "500.00",
+        "payment_type": "IMPS",
+        "utr": "92834823745",
+        "status": "SUCCESS",
+        "beneficiary_details": {
+            "beneficiary_ifsc": "ICIC0009999",
+            "beneficiary_name": "John Doe",
+            "beneficiary_email": "johndoe@example.com",
+            "beneficiary_mobile": "9999999999",
+            "beneficiary_acc_number": "109909023553"
+        },
+        "merchant_ref_id": "TXN_REF_001"
+    }
+}
+```

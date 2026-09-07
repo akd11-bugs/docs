@@ -1,0 +1,90 @@
+---
+title: "FastFlowPe"
+sidebarTitle: "Introduction"
+description: "FastFlowPe is a merchant payment platform supporting PayIn, PayOut, and Refund flows secured by short-lived X-API-Keys and IP whitelisting."
+---
+
+FastFlowPe is a REST API-based payment platform that lets you accept payments, initiate payouts, and manage refunds, all from a single integration. Every API request is secured with a short-lived X-API-Key tied to your whitelisted IP addresses, ensuring that only your servers can interact with your account.
+
+<Tip>
+  **Quick Reference**
+
+  **Base URL:** `https://api.fastflowpe.com`
+
+  **Auth header:** `x-api-key: <your_x_api_key>`
+
+  **Key lifetime:** 30 minutes (rotate before expiry)
+
+  **Dashboard:** [go.fastflowpe.com](https://go.fastflowpe.com/)
+</Tip>
+
+## What You Can Build
+
+<CardGroup cols={3}>
+  <Card title="PayIn" icon="credit-card" href="/collections/overview">
+    Accept payments via payment links or the Transaction API with UPI, QR, cards, and net banking.
+  </Card>
+
+  <Card title="PayOut" icon="circle-dollar-sign" href="/payouts/overview">
+    Send funds to any Indian bank account over IMPS, NEFT, or RTGS with account verification.
+  </Card>
+
+  <Card title="Refunds" icon="refresh-cw" href="/refunds/initiate-refund">
+    Issue full or partial refunds against successful PayIn transactions with real-time status.
+  </Card>
+</CardGroup>
+
+## Get Started in Four Steps
+
+<Steps>
+  <Step title="Get your credentials">
+    Sign in to the [merchant dashboard](https://go.fastflowpe.com/) and copy your permanent [Client ID and Client Secret](/integration/client-credentials).
+  </Step>
+  <Step title="Whitelist your server IPs">
+    Register your Primary (and optional Secondary) server IPs so FastFlowPe accepts calls only from your infrastructure. See [IP Whitelisting](/integration/ip-whitelisting).
+  </Step>
+  <Step title="Generate an X-API-Key">
+    Exchange your Client ID and Secret for a short-lived `x-api-key`. See [API Authentication](/integration/api-authentication).
+  </Step>
+  <Step title="Make your first API call">
+    Call any endpoint with `x-api-key` in the header. Start with [Create Payment Link](/collections/payment-links/create) or [Initiate Payout](/payouts/initiate-payout).
+  </Step>
+</Steps>
+
+## Integration Setup
+
+<CardGroup cols={2}>
+  <Card title="Integration Guidelines" icon="map" href="/integration/integration-guidelines">
+    End-to-end integration checklist before you make your first API call.
+  </Card>
+
+  <Card title="Client Credentials" icon="id-card" href="/integration/client-credentials">
+    Locate your permanent Client ID and Client Secret in the dashboard.
+  </Card>
+
+  <Card title="API Authentication" icon="key" href="/integration/api-authentication">
+    Generate an X-API-Key via API or dashboard and attach it to every request.
+  </Card>
+
+  <Card title="IP Whitelisting" icon="computer" href="/integration/ip-whitelisting">
+    Register your server IPs to lock down access to your account.
+  </Card>
+</CardGroup>
+
+## How Authentication Works
+
+FastFlowPe uses a two-layer security model to protect every API call you make.
+
+**Permanent credentials (Client ID and Client Secret):** At signup, FastFlowPe issues you a Client ID and Client Secret. These never change and act as your identity on the platform. You use them solely to generate a short-lived X-API-Key.
+
+**Short-lived tokens (X-API-Key):** Every API request must include a valid `x-api-key` header. Keys expire after **30 minutes**, after which you must generate a new one. Only one key can be active at a time; issuing a new key immediately revokes the previous one.
+
+**IP whitelisting:** Each X-API-Key is bound to your registered Primary (and optional Secondary) IP addresses. FastFlowPe rejects any request that arrives from an unrecognized IP, even if it carries a valid key.
+
+<Info>
+  Manage your credentials, generate X-API-Keys, and configure IP whitelisting from the **Settings → API** section of the [merchant dashboard](https://go.fastflowpe.com/).
+</Info>
+
+## Real-Time Updates
+
+Skip status polling in production. Configure a [webhook callback URL](/webhooks/callback-configuration) and FastFlowPe will POST JSON payloads to your HTTPS endpoint the moment any PayIn, PayOut, or Refund status changes.

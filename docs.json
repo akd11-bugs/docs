@@ -1,0 +1,116 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "fastflowPe",
+  "theme": "maple",
+  "colors": {
+    "primary": "#2563EB",
+    "light": "#DBEAFE",
+    "dark": "#1E3A8A"
+  },
+  "favicon": {
+    "light": "/images/FastFlowPeIcon512_512-Photoroom.png",
+    "dark": "/images/FastFlowPeIcon512_512-Photoroom.png"
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "icon": "book-open",
+        "pages": [
+          "introduction",
+          {
+            "group": "Integration",
+            "icon": "key-round",
+            "pages": [
+              "integration/client-credentials",
+              "integration/api-authentication",
+              "integration/ip-whitelisting"
+            ]
+          },
+          "support/help-centre"
+        ]
+      },
+      {
+        "group": "Collections",
+        "icon": "arrow-down-to-line",
+        "pages": [
+          "collections/overview",
+          "collections/payment-links/psp-providers",
+          "collections/transaction-api/initiate-payin",
+          "collections/transaction-api/check-transaction",
+          "webhooks/callback-configuration-2"
+        ]
+      },
+      {
+        "group": "Payment Links",
+        "icon": "link",
+        "pages": [
+          "collections/payment-links/create",
+          "collections/payment-links/check-status"
+        ]
+      },
+      {
+        "group": "Fund Transfer",
+        "icon": "arrow-up-from-line",
+        "pages": [
+          "payouts/overview",
+          "payouts/check-status",
+          "payouts/create-beneficiary",
+          "payouts/initiate-payout",
+          "webhooks/payout-callbacks-2"
+        ]
+      },
+      {
+        "group": "Refunds",
+        "icon": "undo-2",
+        "pages": [
+          "refunds/overview",
+          "refunds/initiate-refund",
+          "refunds/check-refund-status"
+        ]
+      },
+      {
+        "group": "Callbacks",
+        "icon": "webhook",
+        "pages": [
+          "webhooks/callback-configuration",
+          "webhooks/payout-callbacks"
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://go.fastflowpe.com/"
+    }
+  },
+  "icons": {
+    "library": "lucide"
+  },
+  "styling": {
+    "codeblocks": "dark"
+  },
+  "logo": {
+    "light": "/images/FastFlowPeIcon512_512-Photoroom.png",
+    "dark": "/images/FastFlowPeIcon512_512-Photoroom.png"
+  },
+  "contextual": {
+    "options": [
+      "chatgpt",
+      "view",
+      "claude",
+      "perplexity"
+    ],
+    "display": "header"
+  },
+  "thumbnails": {
+    "appearance": "light"
+  },
+  "seo": {
+    "metatags": {
+      "canonical": "https://fastflowpe.com/docs"
+    }
+  }
+}

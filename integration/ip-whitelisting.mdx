@@ -1,0 +1,67 @@
+---
+title: "IP Whitelisting"
+sidebarTitle: "IP Whitelisting"
+description: "Register your server IP addresses so FastFlowPe only accepts API requests from your infrastructure, even if an X-API-Key is ever leaked."
+---
+
+IP whitelisting is a mandatory security layer in FastFlowPe's authentication model. Every X-API-Key your account generates is bound to the IP addresses you register. FastFlowPe validates the source IP of every incoming request and rejects any call that does not originate from a recognized address — regardless of whether the key itself is valid.
+
+This means that even if an X-API-Key is leaked or intercepted, it cannot be used from an attacker's server. Only requests from your registered IPs will be accepted.
+
+## How It Works
+
+Each merchant account supports up to two registered IP addresses:
+
+- **Primary IP** — Required. The main server IP from which your integration makes API calls.
+- **Secondary IP** — Optional. A backup or secondary server IP, useful for redundancy or failover setups.
+
+FastFlowPe checks the source IP of every API request against these registered values. Requests from any other address are rejected immediately, before any business logic is evaluated.
+
+<Note>
+  You must register at least a Primary IP before you can successfully make any authenticated API call. API requests from unregistered IPs are rejected even when a valid, unexpired X-API-Key is provided.
+</Note>
+
+## How to Whitelist Your IP Addresses
+
+<Steps>
+  <Step title="Log In to the Merchant Dashboard">
+    Go to [https://go.fastflowpe.com/](https://go.fastflowpe.com/) and sign in with your registered email address and password.
+  </Step>
+  <Step title="Navigate to IP Whitelisting">
+    From the main navigation, go to **Settings → Client ID/Secret → IP Whitelisting**. You will see input fields for your Primary and Secondary IP addresses.
+  </Step>
+  <Step title="Enter Your Primary IP Address">
+    Type the public IP address of your primary server; the one your integration will make API calls from. Double-check this value carefully before proceeding.
+  </Step>
+  <Step title="Enter Your Secondary IP Address (Optional)">
+    If you have a backup or secondary server, enter its IP address in the Secondary IP field. You can leave this blank if you only need one address.
+  </Step>
+  <Step title="Submit and Confirm">
+    Click the submit button to save your IP addresses. FastFlowPe immediately applies the whitelist to your account. All future API requests are validated against these values.
+  </Step>
+</Steps>
+
+<Warning>
+  Once your IP addresses are submitted, **they cannot be changed**. Confirm that both values are correct before saving. If you enter an incorrect IP or need to update your addresses in the future, contact FastFlowPe Support.
+</Warning>
+
+## Choosing Your IP Configuration
+
+You have flexibility in how many IPs you register:
+
+| Configuration | Use Case |
+| --- | --- |
+| Primary IP only | Single-server setups or simple integrations where all API calls originate from one machine |
+| Primary \+ Secondary IP | Multi-server or high-availability setups where requests may come from two distinct servers |
+
+<Tip>
+  Use your server's static public IP address, not a private or internal network address. Dynamic IPs that change on restart or reconnect will cause your API calls to fail once the IP changes. If your infrastructure uses dynamic addressing, set up a static IP or a NAT gateway before registering.
+</Tip>
+
+## What IP Whitelisting Does and Does Not Protect
+
+IP whitelisting provides strong protection against misuse of a leaked X-API-Key, but it is one part of a broader security posture; not a complete substitute for protecting your credentials.
+
+<Info>
+  IP whitelisting prevents unauthorized use of your X-API-Keys from unknown servers. It does **not** protect your Client ID or Client Secret. Secure all three values independently: keep your credentials private, rotate X-API-Keys regularly, and ensure only trusted servers hold registered IP addresses.
+</Info>

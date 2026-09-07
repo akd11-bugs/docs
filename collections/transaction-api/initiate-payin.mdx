@@ -1,0 +1,364 @@
+---
+title: "Initiate a PayIn Transaction "
+sidebarTitle: "Initiate Transaction"
+description: "Call the POST /payin/initialize endpoint to start a payment transaction and receive a checkout URL to redirect your customer to complete payment."
+tag: "POST"
+---
+
+The Initiate PayIn endpoint starts a new payment transaction on behalf of your customer. On success, it returns a `transaction_id` you should persist for status checks and a `checkout_url` to which you redirect the customer to complete the payment. The Transaction API supports multiple payment types (from QR and UPI Intent to cards and net banking), giving you fine-grained control over the checkout experience.
+
+<Tip>
+  **Quick Reference**
+
+  **Method:** `POST`
+
+  **Required:** `amount`, `merchant_ref_id`, `customer_info`, `payment_type`, plus fingerprint headers
+
+  **Returns:** `transaction_id`, `checkout_url`
+
+  **Minimum amount:** ₹200
+
+  **Payment types:** QR, UPI Intent, Cards, Net Banking
+</Tip>
+
+## Endpoint
+
+```text
+POST https://api.fastflowpe.com/merchant/payin/initialize
+```
+
+<Note>
+  The minimum transaction amount is **₹200**. Requests with a lower amount will be rejected.
+</Note>
+
+## Headers
+
+<ParamField header="x-api-key" type="string" required>
+  Your merchant API key, provided by FastFlowPe.
+</ParamField>
+
+<ParamField header="Content-Type" type="string" required>
+  Must be `application/json`.
+</ParamField>
+
+<ParamField header="user-agent" type="string" required>
+  The browser or device user agent string of the customer's client. Pass the actual user agent from the customer's request where possible.
+</ParamField>
+
+<ParamField header="x-browser-fingerprint" type="string" required>
+  Base64-encoded browser or device fingerprint. Used for fraud detection and transaction validation.
+</ParamField>
+
+<ParamField header="x-source-channel" type="string" required>
+  The platform from which the request originates. Accepted values: `web`, `mobile`, `app`.
+</ParamField>
+
+<ParamField header="x-source-channel-version" type="string" required>
+  The version of your client application (e.g. `10`).
+</ParamField>
+
+## Body Parameters
+
+<ParamField body="payment_type" type="string" required>
+  The payment method to use for this transaction. Accepted values: `QR`, `INTENT`, `CREDIT_CARD`, `DEBIT_CARD`, `NETBANKING`, `EMI`, `PAYLATER`.
+</ParamField>
+
+<ParamField body="amount" type="float" required>
+  Amount to charge the customer, in Indian Rupees. Minimum value is **₹200**.
+</ParamField>
+
+<ParamField body="order_id" type="string" required>
+  Unique identifier for the order on your system. Must be unique per transaction.
+</ParamField>
+
+<ParamField body="productinfo" type="string" required>
+  A description of the product or transaction. Must be at least **8 characters** long.
+</ParamField>
+
+<ParamField body="customer_info" type="object" required>
+  An object containing the customer's contact details.
+
+  <Expandable title="customer_info fields">
+    <ParamField body="customer_info.name" type="string" required>
+      Full name of the customer.
+    </ParamField>
+
+    <ParamField body="customer_info.email" type="string" required>
+      Email address of the customer.
+    </ParamField>
+
+    <ParamField body="customer_info.phone_number" type="string" required>
+      10-digit mobile number of the customer, without country code.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="device_os" type="string">
+  Operating system of the customer's device. Required when `payment_type` is `INTENT` or `QR`. Accepted values: `IOS`, `ANDROID`.
+</ParamField>
+
+<ParamField body="target_app" type="string">
+  The UPI app to deep-link the customer into. Required when `payment_type` is `INTENT` or `QR`. Accepted values: `PHONEPE`, `GPAY`, `PAYTM`, `CRED`, `BHIM`, `AMAZON`. Omit this field to request a generic Intent URL (supported on Android only).
+</ParamField>
+
+<ParamField body="upi_id" type="string">
+  The customer's UPI ID for direct UPI collect flows. Optional.
+</ParamField>
+
+<RequestExample>
+
+```bash cURL
+curl --location 'https://api.fastflowpe.com/merchant/payin/initialize' \
+--header 'x-api-key: <your-api-key>' \
+--header 'Content-Type: application/json' \
+--header 'user-agent: Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X)' \
+--header 'x-browser-fingerprint: TW96aWxsYS81LjAgKE1hY2lud' \
+--header 'x-source-channel: web' \
+--header 'x-source-channel-version: 10' \
+--data-raw '{
+    "order_id": "ORD123456789",
+    "amount": 500,
+    "payment_type": "INTENT",
+    "device_os": "IOS",
+    "target_app": "PHONEPE",
+    "productinfo": "Premium Subscription",
+    "customer_info": {
+        "name": "John Doe",
+        "email": "john@example.com",
+        "phone_number": "9999999999"
+    }
+}'
+```
+
+```python Python
+import requests
+
+url = "https://api.fastflowpe.com/merchant/payin/initialize"
+headers = {
+    "x-api-key": "<your-api-key>",
+    "Content-Type": "application/json",
+    "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X)",
+    "x-browser-fingerprint": "TW96aWxsYS81LjAgKE1hY2lud",
+    "x-source-channel": "web",
+    "x-source-channel-version": "10",
+}
+payload = {
+    "order_id": "ORD123456789",
+    "amount": 500,
+    "payment_type": "INTENT",
+    "device_os": "IOS",
+    "target_app": "PHONEPE",
+    "productinfo": "Premium Subscription",
+    "customer_info": {
+        "name": "John Doe",
+        "email": "john@example.com",
+        "phone_number": "9999999999",
+    },
+}
+
+response = requests.post(url, json=payload, headers=headers)
+print(response.json())
+```
+
+```javascript Node.js
+const response = await fetch("https://api.fastflowpe.com/merchant/payin/initialize", {
+  method: "POST",
+  headers: {
+    "x-api-key": "<your-api-key>",
+    "Content-Type": "application/json",
+    "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X)",
+    "x-browser-fingerprint": "TW96aWxsYS81LjAgKE1hY2lud",
+    "x-source-channel": "web",
+    "x-source-channel-version": "10",
+  },
+  body: JSON.stringify({
+    order_id: "ORD123456789",
+    amount: 500,
+    payment_type: "INTENT",
+    device_os: "IOS",
+    target_app: "PHONEPE",
+    productinfo: "Premium Subscription",
+    customer_info: {
+      name: "John Doe",
+      email: "john@example.com",
+      phone_number: "9999999999",
+    },
+  }),
+});
+console.log(await response.json());
+```
+
+```java Java
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+String body = """
+{
+  "order_id": "ORD123456789",
+  "amount": 500,
+  "payment_type": "INTENT",
+  "device_os": "IOS",
+  "target_app": "PHONEPE",
+  "productinfo": "Premium Subscription",
+  "customer_info": {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone_number": "9999999999"
+  }
+}
+""";
+
+HttpClient client = HttpClient.newHttpClient();
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create("https://api.fastflowpe.com/merchant/payin/initialize"))
+    .header("x-api-key", "<your-api-key>")
+    .header("Content-Type", "application/json")
+    .header("user-agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X)")
+    .header("x-browser-fingerprint", "TW96aWxsYS81LjAgKE1hY2lud")
+    .header("x-source-channel", "web")
+    .header("x-source-channel-version", "10")
+    .POST(HttpRequest.BodyPublishers.ofString(body))
+    .build();
+
+HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+System.out.println(response.body());
+```
+
+```go Go
+package main
+
+import (
+    "bytes"
+    "fmt"
+    "io"
+    "net/http"
+)
+
+func main() {
+    payload := []byte(`{
+        "order_id": "ORD123456789",
+        "amount": 500,
+        "payment_type": "INTENT",
+        "device_os": "IOS",
+        "target_app": "PHONEPE",
+        "productinfo": "Premium Subscription",
+        "customer_info": {"name": "John Doe", "email": "john@example.com", "phone_number": "9999999999"}
+    }`)
+
+    req, _ := http.NewRequest("POST", "https://api.fastflowpe.com/merchant/payin/initialize", bytes.NewBuffer(payload))
+    req.Header.Set("x-api-key", "<your-api-key>")
+    req.Header.Set("Content-Type", "application/json")
+    req.Header.Set("user-agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X)")
+    req.Header.Set("x-browser-fingerprint", "TW96aWxsYS81LjAgKE1hY2lud")
+    req.Header.Set("x-source-channel", "web")
+    req.Header.Set("x-source-channel-version", "10")
+
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+    body, _ := io.ReadAll(resp.Body)
+    fmt.Println(string(body))
+}
+```
+
+```php PHP
+<?php
+$payload = json_encode([
+    "order_id" => "ORD123456789",
+    "amount" => 500,
+    "payment_type" => "INTENT",
+    "device_os" => "IOS",
+    "target_app" => "PHONEPE",
+    "productinfo" => "Premium Subscription",
+    "customer_info" => [
+        "name" => "John Doe",
+        "email" => "john@example.com",
+        "phone_number" => "9999999999",
+    ],
+]);
+
+$ch = curl_init("https://api.fastflowpe.com/merchant/payin/initialize");
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "x-api-key: <your-api-key>",
+    "Content-Type: application/json",
+    "user-agent: Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X)",
+    "x-browser-fingerprint: TW96aWxsYS81LjAgKE1hY2lud",
+    "x-source-channel: web",
+    "x-source-channel-version: 10",
+]);
+$response = curl_exec($ch);
+curl_close($ch);
+echo $response;
+```
+
+```ruby Ruby
+require 'net/http'
+require 'uri'
+require 'json'
+
+uri = URI('https://api.fastflowpe.com/merchant/payin/initialize')
+request = Net::HTTP::Post.new(uri)
+request['x-api-key'] = '<your-api-key>'
+request['Content-Type'] = 'application/json'
+request['user-agent'] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X)'
+request['x-browser-fingerprint'] = 'TW96aWxsYS81LjAgKE1hY2lud'
+request['x-source-channel'] = 'web'
+request['x-source-channel-version'] = '10'
+request.body = {
+  order_id: 'ORD123456789',
+  amount: 500,
+  payment_type: 'INTENT',
+  device_os: 'IOS',
+  target_app: 'PHONEPE',
+  productinfo: 'Premium Subscription',
+  customer_info: {
+    name: 'John Doe',
+    email: 'john@example.com',
+    phone_number: '9999999999',
+  },
+}.to_json
+
+response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+puts response.body
+```
+
+</RequestExample>
+
+## Responses
+
+<ResponseExample>
+
+```json Success
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Payin Initiated Successfully",
+  "detail": null,
+  "data": {
+    "transaction_id": "1be74773-88ca-48db-afa6-243d26e29375",
+    "checkout_url": "https://checkout.fastflowpe.com/pay/tx_8fj39dk29slx7ab"
+  },
+  "meta": null
+}
+```
+
+```json Failure
+{
+  "status": "error",
+  "status_code": "4xx",
+  "message": "<reason for failure>",
+  "detail": "<additional detail or null>",
+  "data": null,
+  "meta": null
+}
+```
+
+</ResponseExample>
+
+<Note>
+  Redirect your customer to the `checkout_url` immediately after receiving a success response. Save the `transaction_id` — you will need it to poll the [Check Transaction Status](/collections/transaction-api/check-transaction) endpoint and confirm the payment outcome.
+</Note>
