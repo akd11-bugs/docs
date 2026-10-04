@@ -1,0 +1,209 @@
+---
+title: "Check Subscription Status"
+sidebarTitle: "Check Subscription Status"
+description: "Use this POST endpoint to retrieve the current authorization and lifecycle status of a recurring subscription."
+tag: "POST"
+---
+
+Use the internal `subscription_id` returned by the subscription initialize API.
+
+Do not use `merchant_ref_id` or the PSP subscription ID for this endpoint.
+
+Use the API key in the `x-api-key` header. Do not send it in the `Authorization` header.
+
+<Tip>
+  **Quick Reference**
+
+  **Required:** `subscription_id`
+
+  **Returns:** `subscription_id`, `auth_status`, `subscription_status`
+
+  **Method:** `POST`
+</Tip>
+
+## Endpoint Details
+
+| Field | Value |
+| --- | --- |
+| Method | `POST` |
+| Payload | `JSON` |
+| URL | `https://api.fastflowpe.com/merchant/recurring/subscription/status` |
+
+## Request Headers
+
+<ParamField header="x-api-key" type="string" required>
+  Your secret merchant API key issued by FastFlowPe.
+</ParamField>
+
+<ParamField header="Content-Type" type="string" required>
+  Must be `application/json`.
+</ParamField>
+
+<ParamField header="Accept" type="string" required>
+  Must be `application/json`.
+</ParamField>
+
+## Request Body
+
+<ParamField body="subscription_id" type="string" required>
+  Internal FastFlowPe subscription UUID returned by the subscription initialize API.
+
+  Do not pass `merchant_ref_id` or the PSP subscription ID.
+
+  Example:
+
+  `4cbbd450-b326-4cac-9913-f772c57824b8`
+</ParamField>
+
+<Note>
+  This is a `POST` API even though it retrieves subscription status.
+</Note>
+
+## Request Example
+
+<RequestExample>
+
+```bash cURL
+curl --location 'https://api.fastflowpe.com/merchant/recurring/subscription/status' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'x-api-key: YOUR_MERCHANT_X_API_KEY' \
+  --data-raw '{
+    "subscription_id": "YOUR_SUBSCRIPTION_UUID"
+  }'
+```
+
+</RequestExample>
+
+Replace `YOUR_SUBSCRIPTION_UUID` with the internal `subscription_id` returned by `/merchant/recurring/subscription/initialize`.
+
+## Response
+
+A successful request returns the current mandate authorization status and subscription lifecycle status.
+
+<ResponseExample>
+
+```json Success
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Subscription status fetched successfully",
+  "detail": null,
+  "data": {
+    "subscription_id": "4cbbd450-b326-4cac-9913-f772c57824b8",
+    "auth_status": "AUTHENTICATED",
+    "subscription_status": "SUCCESS"
+  },
+  "meta": null
+}
+```
+
+```json Not Found
+{
+  "status": "error",
+  "status_code": 404,
+  "message": "Subscription not found",
+  "detail": null,
+  "data": null,
+  "meta": null
+}
+```
+
+```json Failure
+{
+  "status": "failure",
+  "status_code": 400,
+  "message": "Get subscription status failed",
+  "detail": null,
+  "data": {
+    "error_message": "Error returned by PSP",
+    "raw_response": {}
+  },
+  "meta": null
+}
+```
+
+</ResponseExample>
+
+## Response Fields
+
+<ResponseField name="status" type="string">
+  Indicates whether the API request succeeded or failed.
+
+  Possible values include `success`, `error`, and `failure`.
+</ResponseField>
+
+<ResponseField name="status_code" type="integer">
+  HTTP-style status code associated with the response.
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable message describing the result of the status request.
+</ResponseField>
+
+<ResponseField name="detail" type="object">
+  Additional response details when available.
+
+  This may be `null`.
+</ResponseField>
+
+<ResponseField name="data.subscription_id" type="string">
+  Internal FastFlowPe subscription UUID.
+
+  This is the same `subscription_id` used in the request.
+</ResponseField>
+
+<ResponseField name="data.auth_status" type="string">
+  Current mandate authorization status.
+</ResponseField>
+
+<ResponseField name="data.subscription_status" type="string">
+  Current lifecycle status of the subscription.
+</ResponseField>
+
+<ResponseField name="data.error_message" type="string">
+  Error message returned when the status check fails.
+
+  This field is present in failure responses.
+</ResponseField>
+
+<ResponseField name="data.raw_response" type="object">
+  Raw response returned by the underlying PSP when the status check fails.
+</ResponseField>
+
+<ResponseField name="meta" type="object">
+  Optional response metadata.
+
+  This may be `null`.
+</ResponseField>
+
+## Authorization Status Values
+
+| Status | Meaning |
+| --- | --- |
+| `PENDING` | Mandate authorization is awaiting customer or bank confirmation. |
+| `AUTHENTICATED` | Mandate was approved successfully. |
+| `FAILED` | Mandate authorization failed. |
+| `REVOKED` | Customer cancelled or revoked the mandate. |
+| `DEACTIVATED` | Mandate expired or was disabled. |
+
+## Subscription Status Values
+
+| Status | Meaning |
+| --- | --- |
+| `CREATED` | Subscription was created, but authorization may still be pending. |
+| `PENDING` | Subscription or bank approval is pending. |
+| `SUCCESS` | Subscription is active. |
+| `HOLD` | Subscription is paused. |
+| `CANCELED` | Subscription has been cancelled. |
+| `COMPLETED` | All billing cycles have completed. |
+
+<Note>
+  Always use the internal FastFlowPe `subscription_id` for subscription status checks and management operations.
+
+  Do not use `merchant_ref_id` or the PSP subscription ID.
+</Note>
+
+<Tip>
+  Store the `subscription_id` returned by the initialize API. This identifier should be used for future subscription status and management operations.
+</Tip>

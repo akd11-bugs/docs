@@ -133,7 +133,7 @@ Use the API key in the `x-api-key` header. Do not send it in the `Authorization`
 
 <RequestExample>
 
-```bash cURL
+```bash
 curl --location 'https://api.fastflowpe.com/merchant/recurring/subscription/initialize' \
   --header 'Content-Type: application/json' \
   --header 'Accept: application/json' \
@@ -167,13 +167,11 @@ curl --location 'https://api.fastflowpe.com/merchant/recurring/subscription/init
 
 ## Response
 
-A successful request returns a `200` response with the FastFlowPe subscription ID, merchant reference ID, and authorization information required to complete the mandate.
-
-If subscription creation fails, the API returns a failure response with the internal subscription ID and the error received while creating the subscription.
+A successful request returns a `200` status with the FastFlowPe subscription ID, merchant reference ID, and authorization information required to complete the mandate.
 
 <ResponseExample>
 
-```json Success
+```json
 {
   "status": "success",
   "status_code": 200,
@@ -208,135 +206,66 @@ If subscription creation fails, the API returns a failure response with the inte
 }
 ```
 
-```json Failure
-{
-  "status": "failure",
-  "status_code": 400,
-  "message": "Subscription creation failed",
-  "detail": null,
-  "data": {
-    "subscription_id": "INTERNAL_SUBSCRIPTION_ID",
-    "error_message": "Error returned by PSP",
-    "raw_response": {}
-  },
-  "meta": null
-}
-```
-
 </ResponseExample>
 
 ### Response Fields
 
-<ResponseField name="status" type="string">
-  Indicates whether the subscription initialization request succeeded or failed.
+<ResponseField name="subscription_id" type="string">
+  Unique FastFlowPe subscription ID created for this subscription.
 
-  Possible values include `success` and `failure`.
+  Save this value for future subscription operations.
 </ResponseField>
 
-<ResponseField name="status_code" type="integer">
-  HTTP-style status code associated with the response.
-
-  A successful request returns `200`. Validation or subscription creation failures may return a `4xx` status code.
-</ResponseField>
-
-<ResponseField name="message" type="string">
-  Human-readable message describing the result of the request.
-</ResponseField>
-
-<ResponseField name="detail" type="object">
-  Additional details related to the response when available.
-
-  This may be `null`.
-</ResponseField>
-
-<ResponseField name="data.subscription_id" type="string">
-  Unique FastFlowPe internal subscription ID.
-
-  This value may be returned for both successful and failed subscription creation attempts.
-</ResponseField>
-
-<ResponseField name="data.merchant_ref_id" type="string">
+<ResponseField name="merchant_ref_id" type="string">
   Merchant reference ID originally provided in `customer_info.merchant_ref_id`.
 
-  This field is returned when the subscription is created successfully.
+  Use this value to map the FastFlowPe subscription to your internal subscription record.
 </ResponseField>
 
-<ResponseField name="data.auth_data" type="object">
+<ResponseField name="auth_data" type="object">
   Authorization information required for the customer to complete the recurring mandate setup.
-
-  This field is returned when subscription initialization succeeds.
 </ResponseField>
 
-<ResponseField name="data.auth_data.url" type="string">
-  URL associated with the mandate authorization flow.
+<ResponseField name="auth_data.url" type="string">
+  URL used as part of the mandate authorization flow.
 </ResponseField>
 
-<ResponseField name="data.auth_data.method" type="string">
+<ResponseField name="auth_data.method" type="string">
   HTTP method associated with the authorization request.
-
-  Typically returned as `post`.
 </ResponseField>
 
-<ResponseField name="data.auth_data.payload" type="object">
-  Payment authorization payload containing the details needed to complete mandate authorization.
+<ResponseField name="auth_data.payload" type="object">
+  Payment authorization payload containing UPI authorization information.
 </ResponseField>
 
-<ResponseField name="data.auth_data.payload.paymentType" type="string">
-  Payment type used for mandate authorization.
-
-  For UPI recurring subscriptions, this is `UPI`.
+<ResponseField name="auth_data.payload.paymentType" type="string">
+  Payment type used for mandate authorization. For UPI recurring subscriptions, this is `UPI`.
 </ResponseField>
 
-<ResponseField name="data.auth_data.payload.upiIntentData" type="object">
-  Contains platform-specific UPI application links that can be used to complete the mandate authorization.
+<ResponseField name="auth_data.payload.upiIntentData" type="object">
+  Contains platform-specific UPI application links that can be used to complete mandate authorization.
 </ResponseField>
 
-<ResponseField name="data.auth_data.payload.upiIntentData.iosAuthAppLinks" type="object">
-  UPI application deep links returned for supported iOS applications such as BHIM, Google Pay, and PhonePe.
+<ResponseField name="auth_data.payload.upiIntentData.iosAuthAppLinks" type="object">
+  UPI application deep links returned for supported iOS apps such as BHIM, Google Pay, and PhonePe.
 </ResponseField>
 
-<ResponseField name="data.auth_data.payload.upiIntentData.androidAuthAppLinks" type="object">
-  UPI application deep links returned for supported Android applications.
+<ResponseField name="auth_data.payload.upiIntentData.androidAuthAppLinks" type="object">
+  UPI application deep links returned for supported Android apps.
 
-  A generic `DEFAULT` UPI deep link may also be returned.
+  A generic `DEFAULT` UPI link may also be returned.
 </ResponseField>
 
-<ResponseField name="data.auth_data.content_type" type="string">
-  Content type associated with the authorization payload.
-
-  Typically `application/json`.
-</ResponseField>
-
-<ResponseField name="data.error_message" type="string">
-  Error message returned when the subscription could not be created.
-
-  This field is present in failure responses.
-</ResponseField>
-
-<ResponseField name="data.raw_response" type="object">
-  Raw error response received while attempting to create the subscription.
-
-  This field can be used for debugging or support investigation.
-</ResponseField>
-
-<ResponseField name="meta" type="object">
-  Optional response metadata.
-
-  This may be `null`.
+<ResponseField name="auth_data.content_type" type="string">
+  Content type of the authorization payload. Typically `application/json`.
 </ResponseField>
 
 <Note>
-  A successful subscription initialization does not mean that the recurring mandate has already been authorized.
+  Creating the subscription does not mean that the mandate has been authorized.
 
-  The customer must complete the mandate authorization using the details returned in `auth_data`.
-</Note>
-
-<Note>
-  If subscription creation fails, an internal `subscription_id` may still be returned.
-
-  Use `error_message` and `raw_response` to understand the reason for the failure.
+  The customer must complete the mandate authorization using the information returned in `auth_data`.
 </Note>
 
 <Tip>
-  Store both `subscription_id` and `merchant_ref_id` for successful subscriptions. Use `subscription_id` for FastFlowPe subscription operations and `merchant_ref_id` to correlate the subscription with your own records.
+  Save both `subscription_id` and `merchant_ref_id`. Use `subscription_id` for FastFlowPe subscription operations and `merchant_ref_id` to correlate the subscription with your own records.
 </Tip>

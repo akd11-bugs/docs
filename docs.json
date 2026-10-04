@@ -27,7 +27,11 @@
               "integration/ip-whitelisting"
             ]
           },
-          "support/help-centre"
+          "support/help-centre",
+          {
+            "group": "Untitled Group",
+            "pages": []
+          }
         ]
       },
       {
@@ -75,6 +79,13 @@
         "pages": [
           "webhooks/callback-configuration",
           "webhooks/payout-callbacks"
+        ]
+      },
+      {
+        "group": "subscription",
+        "pages": [
+          "untitled-page",
+          "untitled-page-2"
         ]
       }
     ]

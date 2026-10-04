@@ -19,11 +19,25 @@ FastFlowPe separates your identity from your session. Your **Client ID** and **C
 
 You can acquire a new X-API-Key in two ways: via the authentication API, or directly from the merchant dashboard.
 
-## Method 1: Generate via API
+## Method 1: Generate via ClientID/Secrets
 
 Use this method in production systems. Send a GET request to the FastFlowPe authentication endpoint with your `client-id` and `client-secret` as headers. The response returns a fresh X-API-Key you can use immediately.
 
-**Request**
+## **Request header**
+
+Include the following headers on your API requests:
+
+<ParamField header="x-api-key" type="string" required>
+  Your merchant secret key. Obtain this from the bluSwap dashboard. Required on every request.
+</ParamField>
+
+<ParamField header="Content-Type" type="string">
+  Set to `application/json` for all requests that send or receive a JSON body. Required for JSON requests.
+</ParamField>
+
+<ParamField header="X-Real-IP" type="string">
+  Your whitelisted public IP address. Required when the endpoint enforces IP-based access control.
+</ParamField>
 
 | Field | Value |
 | --- | --- |
