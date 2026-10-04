@@ -1,0 +1,314 @@
+---
+title: "Manage Subscription"
+sidebarTitle: "Manage Subscription"
+description: "Use this POST endpoint to pause, activate, or cancel an existing recurring subscription."
+tag: "POST"
+---
+
+Use the internal `subscription_id` returned by the subscription initialize API.
+
+Do not use `merchant_ref_id` or the PSP subscription ID for subscription management operations.
+
+Use the API key in the `x-api-key` header. Do not send it in the `Authorization` header.
+
+<Tip>
+  **Quick Reference**
+
+  **Required:** `subscription_id`, `action`
+
+  **Supported Actions:** `PAUSE`, `ACTIVATE`, `CANCEL`
+
+  **Method:** `POST`
+</Tip>
+
+## Endpoint Details
+
+| Field | Value |
+| --- | --- |
+| Method | `POST` |
+| Payload | `JSON` |
+| URL | `https://api.fastflowpe.com/merchant/recurring/subscription/manage` |
+
+## Request Headers
+
+<ParamField header="x-api-key" type="string" required>
+  Your secret merchant API key issued by FastFlowPe.
+</ParamField>
+
+<ParamField header="Content-Type" type="string" required>
+  Must be `application/json`.
+</ParamField>
+
+<ParamField header="Accept" type="string" required>
+  Must be `application/json`.
+</ParamField>
+
+## Request Body
+
+<ParamField body="subscription_id" type="string" required>
+  Internal FastFlowPe subscription UUID returned by the subscription initialize API.
+
+  Do not pass `merchant_ref_id` or the PSP subscription ID.
+</ParamField>
+
+<ParamField body="action" type="string" required>
+  Management action to perform on the subscription.
+
+  Supported values:
+
+  - `PAUSE`
+  - `ACTIVATE`
+  - `CANCEL`
+</ParamField>
+
+## Management Rules
+
+| Action | Required Current Status | Result |
+| --- | --- | --- |
+| `PAUSE` | `SUCCESS` | Local subscription status becomes `HOLD`. |
+| `ACTIVATE` | `HOLD` | Local subscription status becomes `SUCCESS`. |
+| `CANCEL` | Any non-cancelled status | Local subscription status becomes `CANCELED`. |
+
+<Note>
+  Always use the internal FastFlowPe `subscription_id` returned by the initialize API for management operations.
+</Note>
+
+## Pause Subscription
+
+Use the `PAUSE` action to pause an active subscription.
+
+The subscription must currently have status `SUCCESS`.
+
+### Request Example
+
+<RequestExample>
+
+```bash cURL
+curl --location 'https://api.fastflowpe.com/merchant/recurring/subscription/manage' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'x-api-key: YOUR_MERCHANT_X_API_KEY' \
+  --data-raw '{
+    "subscription_id": "YOUR_SUBSCRIPTION_UUID",
+    "action": "PAUSE"
+  }'
+```
+
+</RequestExample>
+
+### Response
+
+<ResponseExample>
+
+```json Success
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Subscription paused successfully",
+  "detail": null,
+  "data": {
+    "subscription_id": "4cbbd450-b326-4cac-9913-f772c57824b8",
+    "previous_status": "SUCCESS",
+    "current_status": "PAUSED"
+  },
+  "meta": null
+}
+```
+
+```json Invalid State
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Cannot pause — subscription is currently CREATED",
+  "detail": null,
+  "data": {
+    "subscription_id": "4cbbd450-b326-4cac-9913-f772c57824b8",
+    "current_status": "CREATED"
+  },
+  "meta": null
+}
+```
+
+</ResponseExample>
+
+<Note>
+  The external PSP may return `PAUSED`, while FastFlowPe stores the local subscription status as `HOLD`.
+</Note>
+
+---
+
+## Activate Subscription
+
+Use the `ACTIVATE` action to reactivate a paused subscription.
+
+The subscription must currently have status `HOLD`.
+
+### Request Example
+
+<RequestExample>
+
+```bash cURL
+curl --location 'https://api.fastflowpe.com/merchant/recurring/subscription/manage' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'x-api-key: YOUR_MERCHANT_X_API_KEY' \
+  --data-raw '{
+    "subscription_id": "YOUR_SUBSCRIPTION_UUID",
+    "action": "ACTIVATE"
+  }'
+```
+
+</RequestExample>
+
+### Response
+
+<ResponseExample>
+
+```json Success
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Subscription activated successfully",
+  "detail": null,
+  "data": {
+    "subscription_id": "4cbbd450-b326-4cac-9913-f772c57824b8",
+    "previous_status": "HOLD",
+    "current_status": "ACTIVE"
+  },
+  "meta": null
+}
+```
+
+```json Invalid State
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Cannot activate — subscription is currently SUCCESS",
+  "detail": null,
+  "data": {
+    "subscription_id": "4cbbd450-b326-4cac-9913-f772c57824b8",
+    "current_status": "SUCCESS"
+  },
+  "meta": null
+}
+```
+
+</ResponseExample>
+
+<Note>
+  The external PSP may return `ACTIVE`, while FastFlowPe stores the local subscription status as `SUCCESS`.
+
+  After activation, the next scheduled charge time is set to the next day at midnight IST.
+</Note>
+
+---
+
+## Cancel Subscription
+
+Use the `CANCEL` action to cancel an existing subscription.
+
+A subscription can be cancelled from any valid non-cancelled state.
+
+### Request Example
+
+<RequestExample>
+
+```bash cURL
+curl --location 'https://api.fastflowpe.com/merchant/recurring/subscription/manage' \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --header 'x-api-key: YOUR_MERCHANT_X_API_KEY' \
+  --data-raw '{
+    "subscription_id": "YOUR_SUBSCRIPTION_UUID",
+    "action": "CANCEL"
+  }'
+```
+
+</RequestExample>
+
+### Response
+
+<ResponseExample>
+
+```json Success
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Subscription canceld successfully",
+  "detail": null,
+  "data": {
+    "subscription_id": "4cbbd450-b326-4cac-9913-f772c57824b8",
+    "previous_status": "SUCCESS",
+    "current_status": "CANCELLED"
+  },
+  "meta": null
+}
+```
+
+</ResponseExample>
+
+<Note>
+  The current backend response message is `Subscription canceld successfully`.
+
+  This is only a message typo and does not affect the cancellation operation.
+</Note>
+
+## Response Fields
+
+<ResponseField name="status" type="string">
+  Indicates whether the management request was processed successfully.
+</ResponseField>
+
+<ResponseField name="status_code" type="integer">
+  HTTP-style status code associated with the response.
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable message describing the result of the requested management action.
+</ResponseField>
+
+<ResponseField name="detail" type="object">
+  Additional response details when available.
+
+  This may be `null`.
+</ResponseField>
+
+<ResponseField name="data.subscription_id" type="string">
+  Internal FastFlowPe subscription UUID.
+</ResponseField>
+
+<ResponseField name="data.previous_status" type="string">
+  Subscription status before the management action was applied.
+
+  This field is returned when the action successfully changes the subscription state.
+</ResponseField>
+
+<ResponseField name="data.current_status" type="string">
+  Current subscription status after the action or the existing status when the requested action cannot be performed.
+</ResponseField>
+
+<ResponseField name="meta" type="object">
+  Optional response metadata.
+
+  This may be `null`.
+</ResponseField>
+
+## Status Mapping
+
+FastFlowPe normalizes PSP subscription statuses internally.
+
+| PSP Status | FastFlowPe Status |
+| --- | --- |
+| `PAUSED` | `HOLD` |
+| `ACTIVE` | `SUCCESS` |
+| `CANCELLED` | `CANCELED` |
+
+<Note>
+  A response such as `Cannot pause — subscription is currently CREATED` or `Cannot activate — subscription is currently SUCCESS` means the requested action is not valid for the subscription's current state.
+
+  No state transition is performed in that case.
+</Note>
+
+<Tip>
+  Check the subscription status before performing a management action when your application needs to determine which actions are currently allowed.
+</Tip>
