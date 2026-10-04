@@ -1,0 +1,416 @@
+---
+title: "Subscription Callback Events"
+sidebarTitle: "Subscription Callbacks"
+description: "Understand the callback events FastFlowPe sends for subscription lifecycle changes and subscription transactions."
+tag: "WEBHOOK"
+---
+
+FastFlowPe sends subscription callbacks as HTTP `POST` requests to the merchant's configured `subscription_callback_url`.
+
+There are currently two merchant-facing subscription callback event types:
+
+- `SUBSCRIPTION`
+- `SUBSCRIPTION_TRANSACTION`
+
+<Tip>
+  **Quick Reference**
+
+  **Delivery Method:** HTTP `POST`
+
+  **Destination:** Merchant configured `subscription_callback_url`
+
+  **Event Types:** `SUBSCRIPTION`, `SUBSCRIPTION_TRANSACTION`
+
+  **Successful Delivery:** Any HTTP `2xx` response
+
+  **Maximum Delivery Attempts:** `3` total attempts for the same event
+</Tip>
+
+## SUBSCRIPTION Event
+
+The `SUBSCRIPTION` event is sent when the subscription lifecycle or mandate authorization status changes.
+
+This includes events such as:
+
+- Mandate approval
+- Mandate failure
+- Subscription pause
+- Subscription activation
+- Subscription cancellation
+- Subscription completion
+- Mandate expiry
+- Mandate revocation
+- Subscription status changes detected during polling
+
+Initial subscription creation by itself does not currently trigger this callback.
+
+### Callback Example
+
+<ResponseExample>
+
+```json SUBSCRIPTION
+{
+  "event_type": "SUBSCRIPTION",
+  "subscription": {
+    "id": "572764cb-7bbc-42d8-b8b2-38c9adb05121",
+    "payment_mode": "UPI",
+    "max_cycle": 12,
+    "cycles_completed": 2,
+    "interval": 1,
+    "plan_interval_type": "MONTHLY",
+    "plan_amount": "499.00",
+    "auth_amount": "1.00",
+    "plan_start_date": "2026-10-01T10:00:00+00:00",
+    "plan_expiry_date": "2027-10-01T10:00:00+00:00",
+    "next_billing_date": "2026-11-01T10:00:00+00:00",
+    "merchant_ref_id": "MERCHANT-SUB-10001",
+    "status": "SUCCESS",
+    "auth_status": "AUTHENTICATED"
+  }
+}
+```
+
+</ResponseExample>
+
+## Subscription Object
+
+<ResponseField name="event_type" type="string">
+  Callback event type.
+
+  For subscription lifecycle callbacks, this is `SUBSCRIPTION`.
+</ResponseField>
+
+<ResponseField name="subscription.id" type="string">
+  Internal FastFlowPe subscription ID.
+</ResponseField>
+
+<ResponseField name="subscription.payment_mode" type="string">
+  Payment mode used for the subscription.
+</ResponseField>
+
+<ResponseField name="subscription.max_cycle" type="integer">
+  Maximum number of billing cycles configured for the subscription.
+</ResponseField>
+
+<ResponseField name="subscription.cycles_completed" type="integer">
+  Number of successfully completed billing cycles.
+</ResponseField>
+
+<ResponseField name="subscription.interval" type="integer">
+  Number of interval units between recurring charges.
+</ResponseField>
+
+<ResponseField name="subscription.plan_interval_type" type="string">
+  Interval type configured for the plan.
+</ResponseField>
+
+<ResponseField name="subscription.plan_amount" type="string">
+  Amount configured for each subscription billing cycle.
+</ResponseField>
+
+<ResponseField name="subscription.auth_amount" type="string">
+  Amount used for mandate authorization.
+</ResponseField>
+
+<ResponseField name="subscription.plan_start_date" type="string">
+  Subscription plan start timestamp.
+</ResponseField>
+
+<ResponseField name="subscription.plan_expiry_date" type="string">
+  Subscription plan expiry timestamp.
+</ResponseField>
+
+<ResponseField name="subscription.next_billing_date" type="string">
+  Next scheduled billing timestamp.
+</ResponseField>
+
+<ResponseField name="subscription.merchant_ref_id" type="string">
+  Merchant-defined subscription reference ID.
+</ResponseField>
+
+<ResponseField name="subscription.status" type="string">
+  Current lifecycle status of the subscription.
+</ResponseField>
+
+<ResponseField name="subscription.auth_status" type="string">
+  Current mandate authorization status.
+</ResponseField>
+
+## Subscription Status Values
+
+| Status | Meaning |
+| --- | --- |
+| `CREATED` | Subscription has been created. |
+| `PENDING` | Subscription or approval is pending. |
+| `SUCCESS` | Subscription is active. |
+| `HOLD` | Subscription is paused. |
+| `CANCELED` | Subscription has been cancelled. |
+| `COMPLETED` | All subscription billing cycles have completed. |
+
+## Authorization Status Values
+
+| Status | Meaning |
+| --- | --- |
+| `PENDING` | Mandate authorization is awaiting customer or bank confirmation. |
+| `AUTHENTICATED` | Mandate authorization completed successfully. |
+| `FAILED` | Mandate authorization failed. |
+| `REVOKED` | Customer revoked the mandate. |
+| `DEACTIVATED` | Mandate expired or was disabled. |
+
+## Payment Mode Values
+
+| Value |
+| --- |
+| `UPI` |
+| `NET_BANKING` |
+| `CREDIT_CARD` |
+| `DEBIT_CARD` |
+
+## Plan Interval Values
+
+| Value |
+| --- |
+| `DAILY` |
+| `WEEKLY` |
+| `MONTHLY` |
+| `YEARLY` |
+
+---
+
+## SUBSCRIPTION_TRANSACTION Event
+
+The `SUBSCRIPTION_TRANSACTION` event is sent for an individual subscription payment or mandate authorization transaction.
+
+The callback contains the subscription object together with a `transaction` object.
+
+### Callback Example
+
+<ResponseExample>
+
+```json SUBSCRIPTION_TRANSACTION
+{
+  "event_type": "SUBSCRIPTION_TRANSACTION",
+  "subscription": {
+    "id": "572764cb-7bbc-42d8-b8b2-38c9adb05121",
+    "payment_mode": "UPI",
+    "max_cycle": 12,
+    "cycles_completed": 2,
+    "interval": 1,
+    "plan_interval_type": "MONTHLY",
+    "plan_amount": "499.00",
+    "auth_amount": "1.00",
+    "plan_start_date": "2026-10-01T10:00:00+00:00",
+    "plan_expiry_date": "2027-10-01T10:00:00+00:00",
+    "next_billing_date": "2026-11-01T10:00:00+00:00",
+    "merchant_ref_id": "MERCHANT-SUB-10001",
+    "status": "SUCCESS",
+    "auth_status": "AUTHENTICATED"
+  },
+  "transaction": {
+    "id": "83c89a3e-8fbf-4e82-8d49-f7ef688231b8",
+    "amount": "499.00",
+    "payment_mode": "UPI_RECURRING",
+    "utr": "428965103247",
+    "status": "SUCCESS",
+    "transaction_details": {
+      "merchant_ref_id": "MERCHANT-SUB-10001",
+      "name": "Customer Name",
+      "email": "customer@example.com",
+      "phone": "9876543210",
+      "payment_mode": "UPI_RECURRING",
+      "upi_id": "customer@upi",
+      "upi_channel": "collect",
+      "authorization_amount": 1
+    },
+    "resp_message": "Payment successful",
+    "billing_period": "2026-10-01",
+    "attempt_number": 1,
+    "cycle_number": 3,
+    "failure_code": null,
+    "remark": "CHARGE"
+  }
+}
+```
+
+</ResponseExample>
+
+## Transaction Object
+
+<ResponseField name="transaction.id" type="string">
+  Unique FastFlowPe transaction ID for the subscription transaction.
+</ResponseField>
+
+<ResponseField name="transaction.amount" type="string">
+  Transaction amount.
+</ResponseField>
+
+<ResponseField name="transaction.payment_mode" type="string">
+  Payment mode used for the transaction.
+
+  Example: `UPI_RECURRING`
+</ResponseField>
+
+<ResponseField name="transaction.utr" type="string">
+  UTR or payment reference returned for the transaction.
+
+  This field may be `null`.
+</ResponseField>
+
+<ResponseField name="transaction.status" type="string">
+  Current status of the subscription transaction.
+</ResponseField>
+
+<ResponseField name="transaction.transaction_details" type="object">
+  Customer information associated with the transaction.
+
+  This field may be `null`.
+</ResponseField>
+
+<ResponseField name="transaction.resp_message" type="string">
+  Human-readable payment response message.
+
+  This field may be `null`.
+</ResponseField>
+
+<ResponseField name="transaction.billing_period" type="string">
+  Billing period associated with the subscription transaction.
+</ResponseField>
+
+<ResponseField name="transaction.attempt_number" type="integer">
+  Attempt number for the transaction within the billing cycle.
+</ResponseField>
+
+<ResponseField name="transaction.cycle_number" type="integer">
+  Billing cycle number associated with the transaction.
+</ResponseField>
+
+<ResponseField name="transaction.failure_code" type="string">
+  Failure code associated with the transaction.
+
+  This field may be `null`.
+</ResponseField>
+
+<ResponseField name="transaction.remark" type="string">
+  Identifies the purpose of the transaction.
+
+  This field may be `null`.
+</ResponseField>
+
+## Transaction Status Values
+
+| Status | Meaning |
+| --- | --- |
+| `CREATED` | Transaction record has been created. |
+| `INITIATED` | Transaction has been initiated. |
+| `PENDING` | Transaction is awaiting final status. |
+| `SUCCESS` | Transaction completed successfully. |
+| `FAILED` | Transaction failed. |
+
+<Note>
+  Normal terminal callback statuses are `SUCCESS` and `FAILED`.
+
+  PSP `CANCELLED` payment statuses are normalized to `FAILED`.
+</Note>
+
+## Transaction Remarks
+
+| Remark | Meaning |
+| --- | --- |
+| `AUTH` | Mandate authorization payment. |
+| `CHARGE` | Recurring subscription charge. |
+
+## Nullable Transaction Fields
+
+The following transaction fields may be `null`:
+
+- `utr`
+- `resp_message`
+- `failure_code`
+- `remark`
+- `transaction_details`
+
+<Warning>
+  `transaction_details` contains the transaction's customer information.
+
+  Depending on the payment mode, it may contain sensitive payment or banking information. Merchants should store and process callback payloads securely.
+</Warning>
+
+## Callback Headers
+
+Subscription callbacks include:
+
+```text
+Content-Type: application/json
+User-Agent: FFP-PaymentGateway/1.0
+```
+
+## Delivery and Retries
+
+FastFlowPe expects the merchant callback endpoint to return an HTTP `2xx` status code to consider the callback successfully delivered.
+
+If the callback does not receive a `2xx` response, FastFlowPe retries delivery for the same event.
+
+| Property | Behavior |
+| --- | --- |
+| Successful delivery | Any HTTP `2xx` response |
+| Failure condition | Any non-`2xx` response or unsuccessful delivery |
+| Maximum attempts | `3` total attempts for the same event |
+| Retry delay | `60` seconds by default |
+| Retry request | The same original URL, headers, and body are reused |
+
+<Note>
+  FastFlowPe makes a maximum of `3` delivery attempts for the same callback event.
+
+  This means the initial callback plus up to `2` retry attempts.
+
+  If the merchant endpoint returns an HTTP `2xx` response on any attempt, the callback is considered successfully delivered and no further retries are made.
+</Note>
+
+<Warning>
+  Merchant callback handlers should be idempotent because the same event may be delivered more than once when retries occur.
+</Warning>
+
+## Callback Deduplication
+
+### SUBSCRIPTION_TRANSACTION
+
+`SUBSCRIPTION_TRANSACTION` callbacks are deduplicated using:
+
+- Transaction ID
+- Transaction status
+
+This prevents the same transaction status from being repeatedly delivered for the same transaction.
+
+### SUBSCRIPTION
+
+`SUBSCRIPTION` lifecycle callbacks are append-only.
+
+Because of this, the same subscription status may be delivered more than once.
+
+<Warning>
+  Do not assume that callback events will be delivered exactly once.
+
+  Your callback endpoint should safely handle repeated delivery of the same event.
+</Warning>
+
+## Recommended Merchant Handling
+
+When receiving a subscription callback:
+
+1. Accept the HTTP `POST` request.
+2. Read `event_type`.
+3. Handle `SUBSCRIPTION` and `SUBSCRIPTION_TRANSACTION` separately.
+4. Process the callback idempotently.
+5. Return an HTTP `2xx` response after successfully accepting and processing the event.
+
+<Tip>
+  Return an HTTP `2xx` response as soon as the callback has been successfully accepted.
+
+  If FastFlowPe does not receive a `2xx` response, the same event may be retried up to the maximum of `3` total delivery attempts.
+</Tip>
+
+<Tip>
+  Use the internal FastFlowPe subscription ID from `subscription.id` to correlate callbacks with subscriptions in your system.
+
+  For transaction callbacks, use `transaction.id` as the unique transaction identifier.
+</Tip>

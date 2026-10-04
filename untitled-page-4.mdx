@@ -1,0 +1,322 @@
+---
+title: "Get Subscription Transactions"
+sidebarTitle: "Subscription Transactions"
+description: "Use this GET endpoint to retrieve transactions associated with a recurring subscription."
+tag: "GET"
+---
+
+Use the internal `subscription_id` returned by the subscription initialize API.
+
+Use the API key in the `x-api-key` header. Do not send it in the `Authorization` header.
+
+<Tip>
+  **Quick Reference**
+
+  **Required:** `subscription_id`
+
+  **Optional Query Parameters:** `limit`, `page_no`, `cursor_id`
+
+  **Returns:** Subscription transactions and pagination details
+
+  **Method:** `GET`
+</Tip>
+
+## Endpoint Details
+
+| Field | Value |
+| --- | --- |
+| Method | `GET` |
+| Request Body | None |
+| URL | `https://api.fastflowpe.com/merchant/recurring/subscription/{subscription_id}/transactions` |
+
+## Request Headers
+
+<ParamField header="x-api-key" type="string" required>
+  Your secret merchant API key issued by FastFlowPe.
+</ParamField>
+
+<ParamField header="Accept" type="string" required>
+  Must be `application/json`.
+</ParamField>
+
+## Path Parameters
+
+<ParamField path="subscription_id" type="string" required>
+  Internal FastFlowPe subscription UUID returned by the subscription initialize API.
+
+  Example:
+
+  `550e8400-e29b-41d4-a716-446655440000`
+</ParamField>
+
+## Query Parameters
+
+<ParamField query="limit" type="integer">
+  Number of transactions to return.
+
+  Default: `20`
+
+  Minimum: `1`
+
+  Maximum: `100`
+</ParamField>
+
+<ParamField query="page_no" type="integer">
+  Page number used for page-based pagination.
+
+  Default: `1`
+
+  Minimum: `1`
+</ParamField>
+
+<ParamField query="cursor_id" type="string">
+  Transaction ID used for cursor-based pagination.
+
+  Use the `cursor_id` returned in `pagination.next_cursor`.
+</ParamField>
+
+<Note>
+  If both `page_no` and `cursor_id` are provided, `page_no` takes precedence.
+</Note>
+
+## Request Example
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  'https://api.fastflowpe.com/merchant/recurring/subscription/YOUR_SUBSCRIPTION_UUID/transactions?limit=20&page_no=1' \
+  --header 'Accept: application/json' \
+  --header 'x-api-key: YOUR_MERCHANT_X_API_KEY'
+```
+
+</RequestExample>
+
+Replace `YOUR_SUBSCRIPTION_UUID` with the internal `subscription_id` returned by `/merchant/recurring/subscription/initialize`.
+
+## Cursor Pagination Request
+
+Use the `cursor_id` returned in `pagination.next_cursor` to fetch the next set of transactions.
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  'https://api.fastflowpe.com/merchant/recurring/subscription/YOUR_SUBSCRIPTION_UUID/transactions?limit=20&cursor_id=YOUR_CURSOR_ID' \
+  --header 'Accept: application/json' \
+  --header 'x-api-key: YOUR_MERCHANT_X_API_KEY'
+```
+
+</RequestExample>
+
+## Response
+
+A successful request returns the transactions associated with the subscription along with pagination details.
+
+<ResponseExample>
+
+```json Success
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Subscription transactions fetched successfully",
+  "detail": null,
+  "data": {
+    "subscription_id": "550e8400-e29b-41d4-a716-446655440000",
+    "transactions": [
+      {
+        "transaction_id": "a21d82fc-41a3-4eb8-987e-612b5cb29a12",
+        "cycle_number": 2,
+        "attempt_number": 1,
+        "amount": "499.00",
+        "status": "SUCCESS",
+        "failure_code": null,
+        "remark": "Recurring payment completed",
+        "created_at": "2026-10-04T11:25:42.123456"
+      }
+    ],
+    "pagination": {
+      "limit": 20,
+      "has_next": true,
+      "total_pages": 3,
+      "page_no": 1,
+      "next_cursor": {
+        "cursor_id": "a21d82fc-41a3-4eb8-987e-612b5cb29a12"
+      }
+    }
+  },
+  "meta": null
+}
+```
+
+```json Not Found
+{
+  "status": "error",
+  "status_code": 404,
+  "message": "Subscription not found",
+  "detail": null,
+  "data": null,
+  "meta": null
+}
+```
+
+```json Authentication Error
+{
+  "detail": "No authorization/ x-api-key header provided."
+}
+```
+
+</ResponseExample>
+
+## Response Fields
+
+<ResponseField name="status" type="string">
+  Indicates whether the request succeeded or failed.
+</ResponseField>
+
+<ResponseField name="status_code" type="integer">
+  HTTP-style status code associated with the response.
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable message describing the result of the request.
+</ResponseField>
+
+<ResponseField name="detail" type="object">
+  Additional response information when available.
+
+  This may be `null`.
+</ResponseField>
+
+<ResponseField name="data.subscription_id" type="string">
+  Internal FastFlowPe subscription UUID whose transactions were requested.
+</ResponseField>
+
+<ResponseField name="data.transactions" type="array">
+  List of recurring payment transactions associated with the subscription.
+</ResponseField>
+
+<ResponseField name="data.transactions[].transaction_id" type="string">
+  Unique FastFlowPe transaction ID for the recurring payment attempt.
+</ResponseField>
+
+<ResponseField name="data.transactions[].cycle_number" type="integer">
+  Billing cycle number associated with the transaction.
+</ResponseField>
+
+<ResponseField name="data.transactions[].attempt_number" type="integer">
+  Attempt number for the transaction within the billing cycle.
+</ResponseField>
+
+<ResponseField name="data.transactions[].amount" type="string">
+  Amount associated with the recurring transaction.
+</ResponseField>
+
+<ResponseField name="data.transactions[].status" type="string">
+  Current status of the recurring transaction.
+
+  Example: `SUCCESS`
+</ResponseField>
+
+<ResponseField name="data.transactions[].failure_code" type="string">
+  Failure code returned when the recurring transaction fails.
+
+  This may be `null` for successful transactions.
+</ResponseField>
+
+<ResponseField name="data.transactions[].remark" type="string">
+  Human-readable remark describing the recurring transaction result.
+</ResponseField>
+
+<ResponseField name="data.transactions[].created_at" type="string">
+  Timestamp when the transaction record was created.
+</ResponseField>
+
+<ResponseField name="data.pagination" type="object">
+  Pagination information for the transaction list.
+</ResponseField>
+
+<ResponseField name="data.pagination.limit" type="integer">
+  Maximum number of transactions requested for the current response.
+</ResponseField>
+
+<ResponseField name="data.pagination.has_next" type="boolean">
+  Indicates whether more transactions are available.
+</ResponseField>
+
+<ResponseField name="data.pagination.total_pages" type="integer">
+  Total number of available pages.
+</ResponseField>
+
+<ResponseField name="data.pagination.page_no" type="integer">
+  Current page number when page-based pagination is used.
+
+  This value is `null` when cursor-based pagination is used.
+</ResponseField>
+
+<ResponseField name="data.pagination.next_cursor" type="object">
+  Cursor information used to fetch the next set of transactions.
+
+  This value is `null` when no additional transactions are available.
+</ResponseField>
+
+<ResponseField name="data.pagination.next_cursor.cursor_id" type="string">
+  Transaction ID to pass as `cursor_id` in the next cursor-based pagination request.
+</ResponseField>
+
+<ResponseField name="meta" type="object">
+  Optional response metadata.
+
+  This may be `null`.
+</ResponseField>
+
+## Cursor Pagination Response
+
+When cursor-based pagination is used, `page_no` is returned as `null`.
+
+```json
+{
+  "pagination": {
+    "limit": 20,
+    "has_next": false,
+    "total_pages": 3,
+    "next_cursor": null,
+    "page_no": null
+  }
+}
+```
+
+## Subscription Not Found
+
+If the subscription does not exist or does not belong to the authenticated merchant, the API returns HTTP `404`.
+
+```json
+{
+  "status": "error",
+  "status_code": 404,
+  "message": "Subscription not found",
+  "detail": null,
+  "data": null,
+  "meta": null
+}
+```
+
+## Authentication Error
+
+If the `x-api-key` header is not provided, the API returns HTTP `401`.
+
+```json
+{
+  "detail": "No authorization/ x-api-key header provided."
+}
+```
+
+<Note>
+  The subscription must belong to the merchant associated with the supplied `x-api-key`.
+
+  If the subscription belongs to another merchant, it is returned as not found.
+</Note>
+
+<Tip>
+  Use page-based pagination for simple page navigation. Use `cursor_id` when you want to continue fetching transactions from the last returned transaction.
+</Tip>

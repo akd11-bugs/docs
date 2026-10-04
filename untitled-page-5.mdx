@@ -1,0 +1,247 @@
+---
+title: "Get Latest Subscription Transaction"
+sidebarTitle: "Latest Subscription Transaction"
+description: "Use this GET endpoint to retrieve the latest transaction attempt for the highest-numbered subscription cycle that is not successful."
+tag: "GET"
+---
+
+Use the internal `subscription_id` returned by the subscription initialize API.
+
+Use the API key in the `x-api-key` header. Do not send it in the `Authorization` header.
+
+<Tip>
+  **Quick Reference**
+
+  **Required:** `subscription_id`
+
+  **Returns:** Latest transaction attempt for the highest-numbered cycle whose status is not `SUCCESS`
+
+  **Method:** `GET`
+</Tip>
+
+## Endpoint Details
+
+| Field | Value |
+| --- | --- |
+| Method | `GET` |
+| Request Body | None |
+| URL | `https://api.fastflowpe.com/merchant/recurring/subscription/{subscription_id}/latest-transaction` |
+
+## Request Headers
+
+<ParamField header="x-api-key" type="string" required>
+  Your merchant API key issued by FastFlowPe.
+</ParamField>
+
+<ParamField header="Accept" type="string" required>
+  Must be `application/json`.
+</ParamField>
+
+## Path Parameters
+
+<ParamField path="subscription_id" type="string" required>
+  Internal FastFlowPe subscription UUID returned by the subscription initialize API.
+
+  Example:
+
+  `550e8400-e29b-41d4-a716-446655440000`
+</ParamField>
+
+## Request Example
+
+<RequestExample>
+
+```bash cURL
+curl --request GET \
+  --url 'https://api.fastflowpe.com/merchant/recurring/subscription/YOUR_SUBSCRIPTION_UUID/latest-transaction' \
+  --header 'Accept: application/json' \
+  --header 'x-api-key: YOUR_MERCHANT_X_API_KEY'
+```
+
+</RequestExample>
+
+Replace `YOUR_SUBSCRIPTION_UUID` with the internal `subscription_id` returned by `/merchant/recurring/subscription/initialize`.
+
+## Response
+
+The API returns the latest transaction attempt for the highest-numbered subscription cycle whose status is not `SUCCESS`.
+
+<ResponseExample>
+
+```json Success
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "Latest cycle transaction fetched successfully",
+  "detail": null,
+  "data": {
+    "subscription_id": "550e8400-e29b-41d4-a716-446655440000",
+    "cycle_number": 3,
+    "attempt_number": 2,
+    "billing_period": "2026-10-01",
+    "transaction_id": "8d727851-a14e-46ea-aee4-e0fd9ca915bb",
+    "amount": "499.00",
+    "status": "FAILED",
+    "failure_code": "PAYMENT_DECLINED",
+    "remark": "Payment declined by the issuing bank",
+    "created_at": "2026-10-04T12:30:15.124000"
+  },
+  "meta": null
+}
+```
+
+```json All Cycles Successful
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "All cycles are successful. No pending or failed cycle found.",
+  "detail": null,
+  "data": null,
+  "meta": null
+}
+```
+
+```json Not Found
+{
+  "status": "error",
+  "status_code": 404,
+  "message": "Subscription not found",
+  "detail": null,
+  "data": null,
+  "meta": null
+}
+```
+
+```json Authentication Error
+{
+  "detail": "No authorization/ x-api-key header provided."
+}
+```
+
+</ResponseExample>
+
+## Response Fields
+
+<ResponseField name="status" type="string">
+  Indicates whether the API request succeeded or failed.
+</ResponseField>
+
+<ResponseField name="status_code" type="integer">
+  HTTP-style status code associated with the response.
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Human-readable message describing the result of the request.
+</ResponseField>
+
+<ResponseField name="detail" type="object">
+  Additional response details when available.
+
+  This may be `null`.
+</ResponseField>
+
+<ResponseField name="data.subscription_id" type="string">
+  Internal FastFlowPe subscription UUID.
+</ResponseField>
+
+<ResponseField name="data.cycle_number" type="integer">
+  Highest-numbered subscription cycle that is not currently successful.
+</ResponseField>
+
+<ResponseField name="data.attempt_number" type="integer">
+  Latest transaction attempt number for the selected cycle.
+</ResponseField>
+
+<ResponseField name="data.billing_period" type="string">
+  Billing period associated with the subscription cycle.
+
+  Example: `2026-10-01`
+</ResponseField>
+
+<ResponseField name="data.transaction_id" type="string">
+  Unique FastFlowPe transaction ID for the latest transaction attempt.
+</ResponseField>
+
+<ResponseField name="data.amount" type="string">
+  Transaction amount for the recurring payment attempt.
+</ResponseField>
+
+<ResponseField name="data.status" type="string">
+  Current status of the transaction attempt.
+
+  Example: `FAILED`
+</ResponseField>
+
+<ResponseField name="data.failure_code" type="string">
+  Failure code associated with the recurring transaction.
+
+  This may be `null` when no failure code exists.
+</ResponseField>
+
+<ResponseField name="data.remark" type="string">
+  Human-readable remark describing the transaction result.
+</ResponseField>
+
+<ResponseField name="data.created_at" type="string">
+  Timestamp when the transaction attempt was created.
+</ResponseField>
+
+<ResponseField name="meta" type="object">
+  Optional response metadata.
+
+  This may be `null`.
+</ResponseField>
+
+## All Cycles Successful
+
+If all subscription cycles have status `SUCCESS`, the API returns HTTP `200` with `data` set to `null`.
+
+```json
+{
+  "status": "success",
+  "status_code": 200,
+  "message": "All cycles are successful. No pending or failed cycle found.",
+  "detail": null,
+  "data": null,
+  "meta": null
+}
+```
+
+## Subscription Not Found
+
+If the subscription does not exist or does not belong to the authenticated merchant, the API returns HTTP `404`.
+
+```json
+{
+  "status": "error",
+  "status_code": 404,
+  "message": "Subscription not found",
+  "detail": null,
+  "data": null,
+  "meta": null
+}
+```
+
+## Authentication Error
+
+If the `x-api-key` header is not provided, the API returns HTTP `401`.
+
+```json
+{
+  "detail": "No authorization/ x-api-key header provided."
+}
+```
+
+<Note>
+  The API selects the highest-numbered subscription cycle whose status is not `SUCCESS`, then returns the latest transaction attempt for that cycle.
+</Note>
+
+<Note>
+  The subscription must belong to the merchant associated with the supplied `x-api-key`.
+
+  If the subscription belongs to another merchant, it is returned as not found.
+</Note>
+
+<Tip>
+  Use this endpoint when you need the most recent pending or failed recurring payment attempt without fetching the complete transaction history.
+</Tip>
