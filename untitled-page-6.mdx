@@ -70,6 +70,51 @@ Initial subscription creation by itself does not currently trigger this callback
 }
 ```
 
+```json SUBSCRIPTION_TRANSACTION
+{
+  "event_type": "SUBSCRIPTION_TRANSACTION",
+  "subscription": {
+    "id": "572764cb-7bbc-42d8-b8b2-38c9adb05121",
+    "payment_mode": "UPI",
+    "max_cycle": 12,
+    "cycles_completed": 2,
+    "interval": 1,
+    "plan_interval_type": "MONTHLY",
+    "plan_amount": "499.00",
+    "auth_amount": "1.00",
+    "plan_start_date": "2026-10-01T10:00:00+00:00",
+    "plan_expiry_date": "2027-10-01T10:00:00+00:00",
+    "next_billing_date": "2026-11-01T10:00:00+00:00",
+    "merchant_ref_id": "MERCHANT-SUB-10001",
+    "status": "SUCCESS",
+    "auth_status": "AUTHENTICATED"
+  },
+  "transaction": {
+    "id": "83c89a3e-8fbf-4e82-8d49-f7ef688231b8",
+    "amount": "499.00",
+    "payment_mode": "UPI_RECURRING",
+    "utr": "428965103247",
+    "status": "SUCCESS",
+    "transaction_details": {
+      "merchant_ref_id": "MERCHANT-SUB-10001",
+      "name": "Customer Name",
+      "email": "customer@example.com",
+      "phone": "9876543210",
+      "payment_mode": "UPI_RECURRING",
+      "upi_id": "customer@upi",
+      "upi_channel": "collect",
+      "authorization_amount": 1
+    },
+    "resp_message": "Payment successful",
+    "billing_period": "2026-10-01",
+    "attempt_number": 1,
+    "cycle_number": 3,
+    "failure_code": null,
+    "remark": "CHARGE"
+  }
+}
+```
+
 </ResponseExample>
 
 ## Subscription Object
@@ -185,54 +230,9 @@ The callback contains the subscription object together with a `transaction` obje
 
 ### Callback Example
 
-<ResponseExample>
-
-```json SUBSCRIPTION_TRANSACTION
-{
-  "event_type": "SUBSCRIPTION_TRANSACTION",
-  "subscription": {
-    "id": "572764cb-7bbc-42d8-b8b2-38c9adb05121",
-    "payment_mode": "UPI",
-    "max_cycle": 12,
-    "cycles_completed": 2,
-    "interval": 1,
-    "plan_interval_type": "MONTHLY",
-    "plan_amount": "499.00",
-    "auth_amount": "1.00",
-    "plan_start_date": "2026-10-01T10:00:00+00:00",
-    "plan_expiry_date": "2027-10-01T10:00:00+00:00",
-    "next_billing_date": "2026-11-01T10:00:00+00:00",
-    "merchant_ref_id": "MERCHANT-SUB-10001",
-    "status": "SUCCESS",
-    "auth_status": "AUTHENTICATED"
-  },
-  "transaction": {
-    "id": "83c89a3e-8fbf-4e82-8d49-f7ef688231b8",
-    "amount": "499.00",
-    "payment_mode": "UPI_RECURRING",
-    "utr": "428965103247",
-    "status": "SUCCESS",
-    "transaction_details": {
-      "merchant_ref_id": "MERCHANT-SUB-10001",
-      "name": "Customer Name",
-      "email": "customer@example.com",
-      "phone": "9876543210",
-      "payment_mode": "UPI_RECURRING",
-      "upi_id": "customer@upi",
-      "upi_channel": "collect",
-      "authorization_amount": 1
-    },
-    "resp_message": "Payment successful",
-    "billing_period": "2026-10-01",
-    "attempt_number": 1,
-    "cycle_number": 3,
-    "failure_code": null,
-    "remark": "CHARGE"
-  }
-}
-```
-
-</ResponseExample>
+<Note>
+  Select the `SUBSCRIPTION_TRANSACTION` tab in the response example panel to view the full transaction callback payload.
+</Note>
 
 ## Transaction Object
 
