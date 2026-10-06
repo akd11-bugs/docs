@@ -4,7 +4,7 @@ sidebarTitle: "Collections Callbacks"
 description: "Receive instant POST notifications on your HTTPS endpoint whenever a PayIn transaction changes status on FastFlowPe."
 ---
 
-FastFlowPe sends real-time PayIn transaction status updates to a webhook endpoint of your choosing. Whenever a PayIn transaction reaches a terminal state, FastFlowPe automatically POSTs a JSON payload to your pre-configured HTTPS URL, so your system stays in sync without polling.
+FastFlowPe sends real-time PayIn transaction status updates to a webhook endpoint of your choosing. Whenever a PayIn transaction reaches a terminal state, FastFlowPe automatically POSTs a JSON payload to your pre-configured HTTPS URL, so your system can react to transaction updates in real time.
 
 <Tip>
   **Quick Reference**
@@ -15,9 +15,11 @@ FastFlowPe sends real-time PayIn transaction status updates to a webhook endpoin
 
   **Event:** PayIn transaction status change
 
-  **Setup path:** Merchant Dashboard, Settings, Webhooks, Credit - PayIn, Update
+  **Setup path:** Merchant Dashboard → Settings → Webhooks → Credit - PayIn → Update
 
   **Activation:** 2 to 3 minutes after saving
+
+  **Retry Policy:** Maximum `3` total delivery attempts. Return HTTP `2xx` to acknowledge successful receipt.
 </Tip>
 
 ## How to Configure Your PayIn Callback URL
@@ -35,7 +37,9 @@ Register your PayIn webhook URL in the merchant dashboard before FastFlowPe can 
     Under **Credit - PayIn**, enter your HTTPS endpoint URL where you want FastFlowPe to deliver PayIn transaction callbacks.
   </Step>
   <Step title="Save the configuration">
-    Click **Update** under **Credit - PayIn** to save your URL. Full path: **Login → Settings → Webhooks → Credit - PayIn → Update**.
+    Click **Update** under **Credit - PayIn** to save your URL.
+
+    Full path: **Login → Settings → Webhooks → Credit - PayIn → Update**
   </Step>
 </Steps>
 
@@ -81,15 +85,22 @@ FastFlowPe uses a `POST` request with a JSON body for all PayIn callbacks.
 </ResponseField>
 
 <ResponseField name="payment_type" type="string">
-  The payment mode used (e.g., `QR`, `UPI`).
+  The payment mode used, for example `QR` or `UPI`.
 </ResponseField>
 
 <ResponseField name="utr" type="string">
-  The Unique Transaction Reference issued by the bank. `null` on failure.
+  The Unique Transaction Reference issued by the bank.
+
+  This may be `null` on failure.
 </ResponseField>
 
 <ResponseField name="status" type="string">
-  The final transaction status. Either `SUCCESS` or `FAILED`.
+  The final transaction status.
+
+  Possible values:
+
+  - `SUCCESS`
+  - `FAILED`
 </ResponseField>
 
 <ResponseField name="transaction_details" type="object">
@@ -100,9 +111,48 @@ FastFlowPe uses a `POST` request with a JSON body for all PayIn callbacks.
   The parsed response message from the payment service provider.
 </ResponseField>
 
+## Callback Acknowledgement and Retries
+
+FastFlowPe expects your webhook endpoint to return an HTTP `2xx` response to acknowledge that the callback was received successfully.
+
+If FastFlowPe does not receive a `2xx` response, the same callback event will be retried up to `2` more times.
+
+This means the same PayIn callback event can be delivered a maximum of `3` times in total:
+
+- Initial callback attempt
+- First retry
+- Second retry
+
+| Property | Behavior |
+| --- | --- |
+| Successful acknowledgement | Any HTTP `2xx` response |
+| Retry condition | No `2xx` response is received |
+| Retry count | Up to `2` retries |
+| Maximum delivery attempts | `3` total attempts for the same event |
+
+<Note>
+  Your callback endpoint must return an HTTP `2xx` response after successfully receiving and accepting the callback.
+
+  Once FastFlowPe receives a `2xx` response, the callback is considered successfully acknowledged and no further retries are made for that event.
+</Note>
+
+<Warning>
+  Your callback handler should be idempotent because the same PayIn event may be delivered more than once if a previous delivery attempt was not acknowledged with an HTTP `2xx` response.
+</Warning>
+
+## Recommended Status Handling
+
+Callbacks should be used for real-time transaction notifications, but the Check Status API should be treated as the primary source for confirming the latest transaction state.
+
 <Tip>
-  In production, rely on callbacks rather than polling the [PayIn Status](/collections/transaction-api/check-transaction) endpoint. Webhooks reduce latency, cut down on unnecessary API calls, and ensure your system reacts to transaction outcomes in real time.
+  In production, use the [PayIn Status](https://fastflowpe.com/docs/collections/transaction-api/check-transaction) API as the source of truth for transaction status.
+
+  Callbacks provide real-time notifications and can help reduce unnecessary status checks, but merchants should use the Check Status API whenever they need to confirm the latest or final transaction state.
 </Tip>
+
+<Note>
+  Do not rely only on callback delivery to determine the final transaction state. If your system needs to verify a transaction, call the PayIn Status API using the relevant transaction identifier.
+</Note>
 
 <Note>
   Configuring PayOut callbacks? See [PayOut Callbacks](/webhooks/payout-callbacks).
