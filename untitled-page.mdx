@@ -63,8 +63,10 @@ Use the API key in the `x-api-key` header. Do not send it in the `Authorization`
   Payment mode used for the subscription. For recurring UPI mandates, use `UPI_RECURRING`.
 </ParamField>
 
-<ParamField body="customer_info.upi_id" type="string" required>
-  Customer's UPI ID or VPA used to authorize the recurring mandate.
+<ParamField body="customer_info.upi_id" type="string">
+  Customer's UPI ID or VPA.
+
+  This field is not mandatory.
 </ParamField>
 
 <ParamField body="customer_info.authorization_amount" type="float" required>
@@ -133,23 +135,23 @@ Use the API key in the `x-api-key` header. Do not send it in the `Authorization`
 
 <RequestExample>
 
-```bash
+```bash cURL
 curl --location 'https://api.fastflowpe.com/merchant/recurring/subscription/initialize' \
   --header 'Content-Type: application/json' \
   --header 'Accept: application/json' \
   --header 'x-api-key: YOUR_MERCHANT_X_API_KEY' \
   --data-raw '{
     "customer_info": {
-      "merchant_ref_id": "SUB-MUKTE217-UNIQUE-001",
-      "name": "Sabyasachi Biswal",
-      "email": "sabyasachi@bluswap.co",
-      "phone": "9521680514",
+      "merchant_ref_id": "SUB-JONSNOW-001",
+      "name": "Jon Snow",
+      "email": "jonsnow@example.com",
+      "phone": "9876543210",
       "payment_mode": "UPI_RECURRING",
-      "upi_id": "9521680514@ptsbi",
+      "upi_id": "9876543210@ptsbi",
       "authorization_amount": 2
     },
     "plan_details": {
-      "plan_name": "sabyatest",
+      "plan_name": "test-plan",
       "plan_type": "PERIODIC",
       "plan_amount": 100,
       "plan_max_amount": 100,
@@ -171,7 +173,7 @@ A successful request returns a `200` status with the FastFlowPe subscription ID,
 
 <ResponseExample>
 
-```json
+```json Success
 {
   "status": "success",
   "status_code": 200,
@@ -179,7 +181,7 @@ A successful request returns a `200` status with the FastFlowPe subscription ID,
   "detail": null,
   "data": {
     "subscription_id": "YOUR_INTERNAL_SUBSCRIPTION_UUID",
-    "merchant_ref_id": "SUB-MUKTE217-UNIQUE-001",
+    "merchant_ref_id": "SUB-JONSNOW-001",
     "auth_data": {
       "url": "https://payments.cashfree.com/subscriptions/checkout/timer",
       "method": "post",
@@ -201,6 +203,21 @@ A successful request returns a `200` status with the FastFlowPe subscription ID,
       },
       "content_type": "application/json"
     }
+  },
+  "meta": null
+}
+```
+
+```json Failure
+{
+  "status": "failure",
+  "status_code": 400,
+  "message": "Subscription creation failed",
+  "detail": null,
+  "data": {
+    "subscription_id": "INTERNAL_SUBSCRIPTION_ID",
+    "error_message": "Error returned by PSP",
+    "raw_response": {}
   },
   "meta": null
 }
@@ -258,6 +275,16 @@ A successful request returns a `200` status with the FastFlowPe subscription ID,
 
 <ResponseField name="auth_data.content_type" type="string">
   Content type of the authorization payload. Typically `application/json`.
+</ResponseField>
+
+<ResponseField name="error_message" type="string">
+  Error message returned when the subscription could not be created.
+
+  This field is present in failure responses.
+</ResponseField>
+
+<ResponseField name="raw_response" type="object">
+  Raw response returned by the PSP when subscription creation fails.
 </ResponseField>
 
 <Note>
